@@ -3,14 +3,14 @@
 	"tasks": [
 		{
 			"type": "cppbuild",
-			"label": "Debug",
+			"label": "Debug Server",
 			"command": "D:\\msys2\\ucrt64\\bin\\g++.exe",
 			"args": [
 				"-fdiagnostics-color=always",
 				"-g",
-				"${workspaceFolder}\\src\\*.cpp",
+				"${workspaceFolder}\\src\\server\\*.cpp",
 				"-o",
-				"${workspaceFolder}\\build\\debug\\App.exe",
+				"${workspaceFolder}\\build\\debug\\server.exe",
 				"-I",
 				"${workspaceFolder}\\include",
 				"-I",
@@ -23,6 +23,45 @@
 				"wxmsw32ud_core",
 				"-l",
 				"wxbase32ud",
+				"-l",
+				"wxbase32ud_net",
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "compiler: D:\\msys2\\ucrt64\\bin\\g++.exe"
+		},
+		{
+			"type": "cppbuild",
+			"label": "Debug Client",
+			"command": "D:\\msys2\\ucrt64\\bin\\g++.exe",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-g",
+				"${workspaceFolder}\\src\\client\\*.cpp",
+				"-o",
+				"${workspaceFolder}\\build\\debug\\client.exe",
+				"-I",
+				"${workspaceFolder}\\include",
+				"-I",
+				"C:\\Program Files (x86)\\wxWidgets\\include",
+				"-I",
+				"C:\\Program Files (x86)\\wxWidgets\\lib\\gcc_x64_dll\\mswud",
+				"-L",
+				"C:\\Program Files (x86)\\wxWidgets\\lib\\gcc_x64_dll",
+				"-l",
+				"wxmsw32ud_core",
+				"-l",
+				"wxbase32ud",
+				"-l",
+				"wxbase32ud_net",
 			],
 			"options": {
 				"cwd": "${fileDirname}"
