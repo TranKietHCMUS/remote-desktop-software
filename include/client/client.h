@@ -11,25 +11,27 @@ enum
     wxID_SOCKET
 };
 
-class Api : public wxApp
+class MyApp : public wxApp
 {
 public:
     virtual bool OnInit();
 };
 
-class Window : public wxFrame
+class MyFrame : public wxFrame
 {
-protected: // Window Controls
+protected:
+    wxTimer* timer;
+    wxImage capturedImage;
     wxPanel *m_panel;
     wxButton *m_connect_button;
     wxTextCtrl *m_log_box;
 
 public:
-    Window(const wxString &title, const wxPoint &pos, const wxSize &size,
-           long style = wxDEFAULT_FRAME_STYLE);
+    MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
+    void OnTimer(wxTimerEvent& event);
     void FunConnect(wxCommandEvent &evt);
     void OnSocketEvent(wxSocketEvent &evt);
-
+    
 private:
     DECLARE_EVENT_TABLE()
 };

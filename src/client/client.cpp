@@ -1,115 +1,114 @@
-#include <client.h>
+// #include <client.h>
 
-IMPLEMENT_APP(Api)
+// IMPLEMENT_APP(MyApp)
 
-// Event Table
-BEGIN_EVENT_TABLE(Window, wxFrame)
-EVT_BUTTON(wxID_BUTCONN, Window::FunConnect)
-EVT_SOCKET(wxID_SOCKET, Window::OnSocketEvent)
-END_EVENT_TABLE()
+// bool MyApp::OnInit()
+// {
+//     MyFrame *MainWindow = new MyFrame(_T("SocketDemo: Client"), wxDefaultPosition, wxSize(1000, 1000));
+//     MainWindow->Centre();
+//     MainWindow->Show(TRUE);
+//     return TRUE;
+// }
 
-void Window::FunConnect(wxCommandEvent &evt)
-{
-    m_log_box->AppendText(_T("Connecting to the server...\n"));
-    m_connect_button->Enable(FALSE);
+// BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+// EVT_BUTTON(wxID_BUTCONN, MyFrame::FunConnect)
+// EVT_SOCKET(wxID_SOCKET, MyFrame::OnSocketEvent)
+// END_EVENT_TABLE()
 
-    // Connecting to the server
-    wxIPV4address adr;
-    adr.Hostname(_T("localhost"));
-    adr.Service(3000);
+// MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
+//                long style) : wxFrame(NULL, -1, title, pos, size, style)
+// {
+//     m_panel = new wxPanel(this, wxID_ANY);
+//     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    // Create the socket
-    wxSocketClient *Socket = new wxSocketClient();
+//     m_connect_button = new wxButton(m_panel, wxID_BUTCONN, _T("Connect"), wxPoint(10, 20));
+//     sizer->Add(m_connect_button, 0, wxALL, 10);
 
-    Socket->SetEventHandler(*this, wxID_SOCKET);
-    Socket->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
-    Socket->Notify(TRUE);
+//     m_log_box = new wxTextCtrl(m_panel, wxID_DESC, wxEmptyString, wxPoint(10, 200), wxSize(300, 300), wxTE_MULTILINE | wxTE_BESTWRAP | wxTE_READONLY);
+//     sizer->Add(m_log_box, 1, wxEXPAND | wxALL, 10);
+    
+//     m_panel->SetSizer(sizer);
 
-    Socket->Connect(adr, false);
-    m_log_box->AppendText(_T("Connecting...\n"));
+//     m_log_box->SetValue("Welcome in my SocketDemo: Client\nClient Ready!\n\n");
+// }
 
-    return;
-}
+// void MyFrame::OnTimer(wxTimerEvent& event)
+// {
+//     wxScreenDC screenDC;
+//     wxMemoryDC memDC;
 
-void Window::OnSocketEvent(wxSocketEvent &evt)
-{
-    wxSocketBase *Sock = evt.GetSocket();
+//     int screenWidth = screenDC.GetSize().GetWidth();
+//     int screenHeight = screenDC.GetSize().GetHeight();
 
-    char buffer[10];
+//     wxBitmap bitmap(screenWidth, screenHeight);
+//     memDC.SelectObject(bitmap);
+//     memDC.Blit(0, 0, screenWidth, screenHeight, &screenDC, 0, 0);
 
-    switch (evt.GetSocketEvent())
-    {
-    case wxSOCKET_CONNECTION:
-    {
-        m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_CONNECTION) Connection successful\n"));
+//     capturedImage = bitmap.ConvertToImage();
+// }
 
-        char mychar = '0';
+// void MyFrame::FunConnect(wxCommandEvent &evt)
+// {
+//     m_log_box->AppendText(_T("Connecting to the server...\n"));
+//     m_connect_button->Enable(FALSE);
 
-        for (int i = 0; i < 10; ++i)
-        {
-            buffer[i] = mychar++;
-        }
+//     wxIPV4address adr;
+//     adr.Hostname(_T("localhost"));
+//     adr.Service(3000);
 
-        Sock->Write(buffer, sizeof(buffer));
+//     wxSocketClient *Socket = new wxSocketClient();
 
-        char cstring[256];
-        sprintf(cstring, "%c%c%c%c%c%c%c%c%c%c\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5],
-                buffer[6], buffer[7], buffer[8], buffer[9]);
-        m_log_box->AppendText(wxString("    Sent ") + cstring + "\n");
+//     Socket->SetEventHandler(*this, wxID_SOCKET);
+//     Socket->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
+//     Socket->Notify(TRUE);
 
-        break;
-    }
+//     Socket->Connect(adr, false);
+//     m_log_box->AppendText(_T("Connecting...\n"));
 
-    case wxSOCKET_INPUT:
-    {
-        m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_INPUT)\n"));
-        Sock->Read(buffer, sizeof(buffer));
+//     return;
+// }
 
-        char cstring[256];
-        sprintf(cstring, "%c%c%c%c%c%c%c%c%c%c\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5],
-                buffer[6], buffer[7], buffer[8], buffer[9]);
-        m_log_box->AppendText(wxString("    received ") + cstring + "\n");
+// void MyFrame::OnSocketEvent(wxSocketEvent &evt)
+// {
+//     wxSocketBase *Sock = evt.GetSocket();
 
-        break;
-    }
+//     switch (evt.GetSocketEvent())
+//     {
+//     case wxSOCKET_CONNECTION:
+//     {
+//         m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_CONNECTION) Connection successful\n"));
+        
+//         Sock->Write(buffer, sizeof(buffer));
 
-    case wxSOCKET_LOST:
-    {
-        m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_LOST)\n"));
-        Sock->Destroy();
-        m_connect_button->Enable(TRUE);
-        break;
-    }
+//         char cstring[256];
+//         sprintf(cstring, "%c%c%c%c%c%c%c%c%c%c\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5],
+//                 buffer[6], buffer[7], buffer[8], buffer[9]);
+//         m_log_box->AppendText(wxString("    Sent ") + cstring + "\n");
 
-    default:
-    {
-        m_log_box->AppendText(_T("OnSocketEvent : unknown socket event\n"));
-        break;
-    }
-    }
-}
+//         break;
+//     }
 
-Window::Window(const wxString &title, const wxPoint &pos, const wxSize &size,
-               long style) : wxFrame(NULL, -1, title, pos, size, style)
-{
-    m_panel = new wxPanel(this, wxID_ANY);
-    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+//     case wxSOCKET_INPUT:
+//     {
+//         m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_INPUT)\n"));
+//         Sock->Read(buffer, sizeof(buffer));
+//         m_log_box->AppendText(wxString("    received ") + cstring + "\n");
 
-    m_connect_button = new wxButton(m_panel, wxID_BUTCONN, _T("Connect"), wxPoint(10, 10));
-    sizer->Add(m_connect_button, 0, wxALL, 10);
+//         break;
+//     }
 
-    m_log_box = new wxTextCtrl(m_panel, wxID_DESC, wxEmptyString, wxPoint(10, 50), wxSize(300, 300), wxTE_MULTILINE | wxTE_BESTWRAP | wxTE_READONLY);
-    sizer->Add(m_log_box, 1, wxEXPAND | wxALL, 10);
-    m_panel->SetSizer(sizer);
+//     case wxSOCKET_LOST:
+//     {
+//         m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_LOST)\n"));
+//         Sock->Destroy();
+//         m_connect_button->Enable(TRUE);
+//         break;
+//     }
 
-    m_log_box->SetValue("Welcome in my SocketDemo: Client\nClient Ready!\n\n");
-}
-
-bool Api::OnInit()
-{
-    Window *MainWindow = new Window(_T("SocketDemo: Client"), wxDefaultPosition, wxSize(500, 500));
-    MainWindow->Centre();
-    MainWindow->Show(TRUE);
-    return TRUE;
-}
-
+//     default:
+//     {
+//         m_log_box->AppendText(_T("OnSocketEvent : unknown socket event\n"));
+//         break;
+//     }
+//     }
+// }
