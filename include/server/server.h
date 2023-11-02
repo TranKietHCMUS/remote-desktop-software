@@ -3,15 +3,17 @@
 
 #include <wx/wx.h>
 #include <wx/socket.h>
+#include <wx/mstream.h>
 
 enum
 {
     wxID_SOCKET = wxID_HIGHEST,
     wxID_SERVER,
     wxID_BUTSTART,
-    wxID_BUTDISP,
     wxID_DESC
 };
+
+wxImage data;
 
 class MyApp : public wxApp
 {
@@ -24,7 +26,6 @@ class MyFrame : public wxFrame
 protected:
     wxPanel *m_panel;
     wxButton *m_start_button;
-    wxButton *m_displayscreen_button;
     wxTextCtrl *m_log_box;
     wxSocketServer *m_server;
 
@@ -34,7 +35,9 @@ public:
     void ServerStart(wxCommandEvent &evt);
     void OnServerEvent(wxSocketEvent &evt);
     void OnSocketEvent(wxSocketEvent &evt);
-    void DisplayScreen(wxCommandEvent &evt);
+    void DisplayScreen();
+
+    friend class MyDisplayScreenFrame;
 
 private:
     wxImage receivedImage;
@@ -44,7 +47,7 @@ private:
 
 class MyDisplayScreenFrame : public wxFrame {
 public:
-    MyDisplayScreenFrame(const wxString& title, const wxPoint& pos, const wxSize& size, wxImage image);
+    MyDisplayScreenFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
     void OnTimer(wxTimerEvent& event);
     void OnPaint(wxPaintEvent& event);
     void OnClose(wxCloseEvent& event);

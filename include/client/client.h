@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 #include <wx/socket.h>
+#include <wx/mstream.h>
 
 enum
 {
@@ -31,6 +32,7 @@ public:
     void OnTimer(wxTimerEvent& event);
     void FunConnect(wxCommandEvent &evt);
     void OnSocketEvent(wxSocketEvent &evt);
+    void OnClose(wxCloseEvent &evt);
     
 private:
     DECLARE_EVENT_TABLE()
