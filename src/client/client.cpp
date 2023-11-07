@@ -1,132 +1,137 @@
 #include <client.h>
 
-IMPLEMENT_APP(MyApp)
+wxIMPLEMENT_APP(MyClientApp);
 
-bool MyApp::OnInit()
+bool MyClientApp::OnInit()
 {
-    MyFrame *MainWindow = new MyFrame(_T("SocketDemo: Client"), wxDefaultPosition, wxSize(300, 300));
-    MainWindow->Centre();
-    MainWindow->Show(TRUE);
-    return TRUE;
+    MyClientFrame* myClientWindow = new MyClientFrame(wxT("Client Window"), wxDefaultPosition, wxSize(400, 400));
+    myClientWindow->Show(true);
+    myClientWindow->Centre();
+    return true;
 }
 
-BEGIN_EVENT_TABLE(MyFrame, wxFrame)
-EVT_BUTTON(wxID_BUTCONN, MyFrame::FunConnect)
-EVT_SOCKET(wxID_SOCKET, MyFrame::OnSocketEvent)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(MyClientFrame, wxFrame)
+    EVT_SOCKET(wxID_SOCKET, MyClientFrame::OnClientSocket)
+wxEND_EVENT_TABLE();
 
-MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
-               long style) : wxFrame(NULL, -1, title, pos, size, style), capturedImage(1,1)
+MyClientFrame::MyClientFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style)
+    : wxFrame(NULL, wxID_ANY, title, pos, size, style), dataScreenImage(1, 1), screenImage(1, 1)
 {
-    m_panel = new wxPanel(this, wxID_ANY);
-    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-
-    m_connect_button = new wxButton(m_panel, wxID_BUTCONN, _T("Connect"), wxPoint(10, 20));
-    sizer->Add(m_connect_button, 0, wxALL, 10);
-
-    m_log_box = new wxTextCtrl(m_panel, wxID_DESC, wxEmptyString, wxPoint(10, 200), wxSize(300, 300), wxTE_MULTILINE | wxTE_BESTWRAP | wxTE_READONLY);
-    sizer->Add(m_log_box, 1, wxEXPAND | wxALL, 10);
+    panel = new wxPanel(this, wxID_ANY);
     
-    m_panel->SetSizer(sizer);
+    connectButton =  new wxButton(panel, wxID_CONNECT_BUTTON, wxT("Connect"), wxPoint(10, 10));
+    connectButton->Bind(wxEVT_BUTTON, &MyClientFrame::OnConnectButton, this, wxID_CONNECT_BUTTON);
+    
+    displayButton = new wxButton(panel, wxID_DISPLAY_BUTTON, wxT("Display Screen"));
+    displayButton->Bind(wxEVT_BUTTON, &MyClientFrame::OnDisplayButton, this, wxID_DISPLAY_BUTTON);
 
-    m_log_box->SetValue("Welcome in my SocketDemo: Client\nClient Ready!\n\n");
+    logBox = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                            wxTE_MULTILINE | wxTE_BESTWRAP | wxTE_READONLY);
+    LayoutClientScreen();
 
-    timer = new wxTimer(this, wxID_ANY);
-    Bind(wxEVT_TIMER, &MyFrame::OnTimer, this, wxID_ANY);
-    timer->Start(30);
+    updatingScreenTimer = new wxTimer(this, wxID_TIMER);
+    Bind(wxEVT_TIMER, &MyClientFrame::OnUpdatingScreenTimer, this, wxID_TIMER);
+    updatingScreenTimer->Start(16);
 
-    Bind(wxEVT_CLOSE_WINDOW, &MyFrame::OnClose, this);
+    Bind(wxEVT_CLOSE_WINDOW, &MyClientFrame::OnClose, this);
 }
 
-void MyFrame::OnTimer(wxTimerEvent& event)
+MyClientFrame::~MyClientFrame(){}
+
+void MyClientFrame::LayoutClientScreen()
 {
-    wxScreenDC screenDC;
-    wxMemoryDC memDC;
-
-    int screenWidth = screenDC.GetSize().GetWidth();
-    int screenHeight = screenDC.GetSize().GetHeight();
-
-    wxBitmap bitmap(screenWidth, screenHeight);
-    memDC.SelectObject(bitmap);
-    memDC.Blit(0, 0, screenWidth, screenHeight, &screenDC, 0, 0);
-
-    capturedImage = bitmap.ConvertToImage();
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(connectButton, 0, wxALL, 10);
+    sizer->Add(displayButton, 0, wxALL, 10);
+    sizer->Add(logBox, 1, wxEXPAND | wxALL, 10);
+    panel->SetSizer(sizer);
 }
 
-void MyFrame::FunConnect(wxCommandEvent &evt)
+void MyClientFrame::OnInputThreadDestruction()
 {
-    m_log_box->AppendText(_T("Connecting to the server...\n"));
-    m_connect_button->Enable(FALSE);
+    wxCriticalSectionLocker lock(iTcs);
+    inputThread = nullptr;
+}
+
+void MyClientFrame::OnUpdatingScreenTimer(wxTimerEvent &e)
+{
+    wxCriticalSectionLocker lock(sIcs);
+    dataScreenImage = screenImage;
+}
+
+void MyClientFrame::OnConnectButton(wxCommandEvent &e)
+{
+    connectButton->Disable();
 
     wxIPV4address adr;
-    adr.Hostname(_T("localhost"));
+    adr.Hostname(wxT("localhost"));
     adr.Service(3000);
 
-    wxSocketClient *Socket = new wxSocketClient(wxSOCKET_NOWAIT);
+    client = new wxSocketClient();
 
-    Socket->SetEventHandler(*this, wxID_SOCKET);
-    Socket->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
-    Socket->Notify(TRUE);
+    client->SetEventHandler(*this, wxID_SOCKET);
+    client->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
+    client->Notify(true);
 
-    Socket->Connect(adr, false);
-    m_log_box->AppendText(_T("Connecting...\n"));
+    client->Connect(adr, false);
 
-    return;
+    logBox->AppendText(wxT("Connecting to the server...\n"));
 }
 
-void MyFrame::OnSocketEvent(wxSocketEvent &evt)
+void MyClientFrame::OnClientSocket(wxSocketEvent &e)
 {
-    wxSocketBase *Sock = evt.GetSocket();
-    wxPNGHandler *handler = new wxPNGHandler;
-    wxImage::AddHandler(handler);
-    char buff[3];
-
-    switch (evt.GetSocketEvent())
+    socket = e.GetSocket();
+    switch (e.GetSocketEvent())
     {
     case wxSOCKET_CONNECTION:
     {
-        m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_CONNECTION) Connection successful\n"));
-        wxMemoryOutputStream stream;
-        capturedImage.SaveFile(stream, wxBITMAP_TYPE_PNG);
-        wxUint32 imageSize = stream.GetSize();
-        Sock->Write(&imageSize, sizeof(wxUint32));
-        Sock->Write(stream.GetOutputStreamBuffer()->GetBufferStart(), imageSize);
+        logBox->AppendText(wxT("Event: CONNECTION\n"));
+        const char reponse = '.';
+        socket->Write(&reponse, sizeof(char));
         break;
     }
     case wxSOCKET_INPUT:
     {
-        m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_INPUT):\n"));
-        Sock->Read(buff, 3);
-        wxMemoryOutputStream stream;
-        capturedImage.SaveFile(stream, wxBITMAP_TYPE_PNG);
-        wxUint32 imageSize = stream.GetSize();
-        Sock->Write(&imageSize, sizeof(wxUint32));
-        Sock->Write(stream.GetOutputStreamBuffer()->GetBufferStart(), imageSize);
-        break;
-    }
-    case wxSOCKET_OUTPUT:
-    {
-        m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_OUTPUT):\n"));
+        logBox->AppendText(wxT("Event: INPUT\n"));
+
+        inputThread = new InputThread(this, screenImage, sIcs, socket); 
+
+        if (inputThread->Run() !=  wxTHREAD_NO_ERROR)
+        {
+            logBox->AppendText(wxT("Failed to create InputThread!\n"));
+            delete inputThread;
+        }
+        else
+        {
+            logBox->AppendText(wxT("Created InputThread!\n"));
+        }
+
         break;
     }
     case wxSOCKET_LOST:
     {
-        m_log_box->AppendText(_T("OnSocketEvent(wxSOCKET_LOST)\n"));
-        Sock->Destroy();
-        m_connect_button->Enable(TRUE);
+        logBox->AppendText(wxT("Event: LOST\n"));
+        socket->Destroy();
+        connectButton->Enable();
         break;
     }
 
     default:
     {
-        m_log_box->AppendText(_T("OnSocketEvent : unknown socket event\n"));
-        break;
+        logBox->AppendText(wxT("Event : unknown\n"));
     }
     }
 }
 
-void MyFrame::OnClose(wxCloseEvent &evt)
+void MyClientFrame::OnDisplayButton(wxCommandEvent &e)
 {
-    timer->Stop();
+    DisplayScreenFrame* displayScrenWindow = new DisplayScreenFrame(wxT("Display Screen Window"), wxDefaultPosition, wxSize(800, 450), dataScreenImage);
+    displayScrenWindow->Show(true);
+    displayScrenWindow->Centre();
+}
+
+
+void MyClientFrame::OnClose(wxCloseEvent &e)
+{
     Destroy();
 }

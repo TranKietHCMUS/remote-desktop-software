@@ -3,60 +3,53 @@
 
 #include <wx/wx.h>
 #include <wx/socket.h>
-#include <wx/mstream.h>
+#include <serversocketthread.h>
 
-enum
+class MyServerApp : public wxApp
 {
-    wxID_SOCKET = wxID_HIGHEST,
+    public:
+        virtual bool OnInit();
+};
+
+enum{
+    wxID_BUTTON,
+    wxID_TIMER = wxID_HIGHEST,
     wxID_SERVER,
-    wxID_BUTSTART,
-    wxID_DESC
+    wxID_SOCKET,
 };
 
-wxImage data;
-
-class MyApp : public wxApp
+class MyServerFrame : public wxFrame, public InputThreadCallback
 {
-public:
-    virtual bool OnInit();
-};
+    public:
+        MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);    
+        virtual ~MyServerFrame();
 
-class MyFrame : public wxFrame
-{
-protected:
-    wxPanel *m_panel;
-    wxButton *m_start_button;
-    wxTextCtrl *m_log_box;
-    wxSocketServer *m_server;
+        
+    private:
+        wxPanel *panel;
+        wxButton *allowButton;
+        wxTextCtrl *logBox;
+        
+        wxTimer *capturingTimer; 
+           
+        wxImage capturedImage;
+        wxCriticalSection cIcs;
 
-public:
-    MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
-           long style = wxDEFAULT_FRAME_STYLE);
-    void ServerStart(wxCommandEvent &evt);
-    void OnServerEvent(wxSocketEvent &evt);
-    void OnSocketEvent(wxSocketEvent &evt);
-    void DisplayScreen();
+        wxSocketServer *server;
+        wxSocketBase *socket;
 
-    friend class MyDisplayScreenFrame;
+        InputThread *inputThread;
+        wxCriticalSection iTcs;
+        void OnInputThreadDestruction() override;
 
-private:
-    wxImage receivedImage;
+        void OnClickAllowButton(wxCommandEvent &e);
+        void OnServerConnection(wxSocketEvent &e);
+        void OnServerSocket(wxSocketEvent &e);
+        void OnCapturingTimer(wxTimerEvent &e);
+        void LayoutServerScreen();
+        void OnClose(wxCloseEvent &e);
 
-    DECLARE_EVENT_TABLE()
-};
-
-class MyDisplayScreenFrame : public wxFrame {
-public:
-    MyDisplayScreenFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
-    void OnTimer(wxTimerEvent& event);
-    void OnPaint(wxPaintEvent& event);
-    void OnClose(wxCloseEvent& event);
-
-private:
-    wxTimer* timer;
-    wxImage capturedImage;
-
-    wxDECLARE_EVENT_TABLE();
+        wxDECLARE_EVENT_TABLE();
 };
 
 #endif

@@ -3,39 +3,55 @@
 
 #include <wx/wx.h>
 #include <wx/socket.h>
-#include <wx/mstream.h>
+#include <displayscreen.h>
+#include <clientsocketthread.h>
+
+class MyClientApp : public wxApp
+{
+    public:
+        bool OnInit() override;
+};
 
 enum
 {
-    wxID_BUTCONN = 0,
-    wxID_DESC,
-    wxID_SOCKET
+    wxID_CONNECT_BUTTON,
+    wxID_DISPLAY_BUTTON,
+    wxID_TIMER = wxID_HIGHEST + 1,
+    wxID_SOCKET,
 };
 
-class MyApp : public wxApp
+class MyClientFrame : public wxFrame, public InputThreadCallback
 {
-public:
-    virtual bool OnInit();
-};
+    public:
+        MyClientFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
+        virtual ~MyClientFrame();
+    private:
+        wxPanel *panel;
+        wxButton *connectButton;
+        wxButton *displayButton;
+        wxTextCtrl *logBox;
 
-class MyFrame : public wxFrame
-{
-protected:
-    wxTimer* timer;
-    wxImage capturedImage;
-    wxPanel *m_panel;
-    wxButton *m_connect_button;
-    wxTextCtrl *m_log_box;
+        wxImage dataScreenImage;
+        wxTimer *updatingScreenTimer;
 
-public:
-    MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
-    void OnTimer(wxTimerEvent& event);
-    void FunConnect(wxCommandEvent &evt);
-    void OnSocketEvent(wxSocketEvent &evt);
-    void OnClose(wxCloseEvent &evt);
-    
-private:
-    DECLARE_EVENT_TABLE()
+        wxImage screenImage;
+        wxCriticalSection sIcs;
+
+        wxSocketClient *client;
+        wxSocketBase *socket;
+
+        InputThread *inputThread;
+        wxCriticalSection iTcs;
+        void OnInputThreadDestruction() override;
+
+        void LayoutClientScreen();
+        void OnUpdatingScreenTimer(wxTimerEvent &e);
+        void OnConnectButton(wxCommandEvent &e);
+        void OnDisplayButton(wxCommandEvent &e);
+        void OnClientSocket(wxSocketEvent &e);
+        void OnClose(wxCloseEvent &e);
+
+        wxDECLARE_EVENT_TABLE();
 };
 
 #endif
