@@ -2,16 +2,19 @@
 #define SERVER_H
 
 #include <wx/wx.h>
-#include <wx/socket.h>
+#include <wx/mstream.h>
+#include <wx/image.h>
 #include <serversocketthread.h>
+#pragma comment(lib, "ws2_32.lib")
 
 class MyServerApp : public wxApp
 {
-    public:
-        virtual bool OnInit();
+public:
+    virtual bool OnInit();
 };
 
-enum{
+enum
+{
     wxID_BUTTON,
     wxID_TIMER = wxID_HIGHEST,
     wxID_SERVER,
@@ -20,36 +23,32 @@ enum{
 
 class MyServerFrame : public wxFrame, public InputThreadCallback
 {
-    public:
-        MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);    
-        virtual ~MyServerFrame();
+public:
+    MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
+    virtual ~MyServerFrame();
 
-        
-    private:
-        wxPanel *panel;
-        wxButton *allowButton;
-        wxTextCtrl *logBox;
-        
-        wxTimer *capturingTimer; 
-           
-        wxImage capturedImage;
-        wxCriticalSection cIcs;
+private:
+    wxPanel *panel;
+    wxButton *allowButton;
+    wxTextCtrl *logBox;
 
-        wxSocketServer *server;
-        wxSocketBase *socket;
+    wxTimer *capturingTimer;
 
-        InputThread *inputThread;
-        wxCriticalSection iTcs;
-        void OnInputThreadDestruction() override;
+    wxImage capturedImage;
+    wxCriticalSection cIcs;
 
-        void OnClickAllowButton(wxCommandEvent &e);
-        void OnServerConnection(wxSocketEvent &e);
-        void OnServerSocket(wxSocketEvent &e);
-        void OnCapturingTimer(wxTimerEvent &e);
-        void LayoutServerScreen();
-        void OnClose(wxCloseEvent &e);
+    InputThread *inputThread;
+    wxCriticalSection iTcs;
+    void OnInputThreadDestruction() override;
 
-        wxDECLARE_EVENT_TABLE();
+    void OnClickAllowButton(wxCommandEvent &e);
+    // void OnServerConnection(wxSocketEvent &e);
+    // void OnServerSocket(wxSocketEvent &e);
+    void OnCapturingTimer(wxTimerEvent &e);
+    void LayoutServerScreen();
+    void OnClose(wxCloseEvent &e);
+
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif
