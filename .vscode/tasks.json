@@ -4,7 +4,7 @@
 		{
 			"type": "cppbuild",
 			"label": "Debug Server",
-			"command": "D:\\msys2\\ucrt64\\bin\\g++.exe",
+			"command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
 			"args": [
 				"-fdiagnostics-color=always",
 				"-g",
@@ -25,6 +25,7 @@
 				"wxbase32ud",
 				"-l",
 				"wxbase32ud_net",
+				"-lws2_32"
 			],
 			"options": {
 				"cwd": "${fileDirname}"
@@ -36,12 +37,12 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: D:\\msys2\\ucrt64\\bin\\g++.exe"
+			"detail": "compiler: C:\\msys64\\ucrt64\\bin\\g++.exe"
 		},
 		{
 			"type": "cppbuild",
 			"label": "Debug Client",
-			"command": "D:\\msys2\\ucrt64\\bin\\g++.exe",
+			"command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
 			"args": [
 				"-fdiagnostics-color=always",
 				"-g",
@@ -62,6 +63,7 @@
 				"wxbase32ud",
 				"-l",
 				"wxbase32ud_net",
+				"-lws2_32"
 			],
 			"options": {
 				"cwd": "${fileDirname}"
@@ -73,12 +75,12 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: D:\\msys2\\ucrt64\\bin\\g++.exe"
+			"detail": "compiler: C:\\msys64\\ucrt64\\bin\\g++.exe"
 		},
 		{
 			"type": "cppbuild",
 			"label": "Release",
-			"command": "D:\\msys2\\ucrt64\\bin\\g++.exe",
+			"command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
 			"args": [
 				"-fdiagnostics-color=always",
 				"${workspaceFolder}\\src\\*.cpp",
@@ -96,6 +98,7 @@
 				"wxmsw32u_core",
 				"-l",
 				"wxbase32u",
+				"-lws2_32"
 			],
 			"options": {
 				"cwd": "${fileDirname}"
@@ -107,7 +110,7 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: D:\\msys2\\ucrt64\\bin\\g++.exe"
+			"detail": "compiler: C:\\msys64\\ucrt64\\bin\\g++.exe"
 		}
 	]
 }
