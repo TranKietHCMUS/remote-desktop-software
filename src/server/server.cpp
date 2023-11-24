@@ -40,20 +40,20 @@ void MyServerFrame::LayoutServerScreen()
     panel->SetSizer(sizer);
 }
 
-void MyServerFrame::OnInputThreadDestruction()
+void MyServerFrame::OnSocketThreadDestruction()
 {
     allowButton->Enable();
-    inputThread = nullptr;
+    socketThread = nullptr;
 }
 
 void MyServerFrame::OnClickAllowButton(wxCommandEvent &e)
 {
     allowButton->Disable();
-    inputThread = new InputThread(this, capturedImage, cIcs);
-    if (inputThread->Run() != wxTHREAD_NO_ERROR)
+    socketThread = new SocketThread(this, capturedImage, cIcs);
+    if (socketThread->Run() != wxTHREAD_NO_ERROR)
     {
         logBox->AppendText(wxT("Failed to create InputThread!\n"));
-        delete inputThread;
+        delete socketThread;
     }
     else
     {
@@ -75,7 +75,7 @@ void MyServerFrame::OnCapturingTimer(wxTimerEvent &e)
 
     wxCriticalSectionLocker lock(cIcs);
     capturedImage = bitmap.ConvertToImage();
-    capturedImage = capturedImage.Rescale(1280, 720, wxIMAGE_QUALITY_HIGH);
+    //capturedImage = capturedImage.Rescale(1280, 720, wxIMAGE_QUALITY_HIGH);
 }
 
 void MyServerFrame::OnClose(wxCloseEvent &e)

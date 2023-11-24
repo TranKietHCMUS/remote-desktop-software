@@ -1,13 +1,13 @@
 #include <clientsocketthread.h>
 
-InputThread::InputThread(InputThreadCallback *callback, wxImage &screenImage, wxCriticalSection &sIcs)
+SocketThread::SocketThread(SocketThreadCallback *callback, wxImage &screenImage, wxCriticalSection &sIcs)
     : callback(callback), screenImage(screenImage), sIcs(sIcs) {}
-InputThread::~InputThread()
+SocketThread::~SocketThread()
 {
-    callback->OnInputThreadDestruction();
+    callback->OnSocketThreadDestruction();
 }
 
-wxThread::ExitCode InputThread::Entry()
+wxThread::ExitCode SocketThread::Entry()
 {
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -73,6 +73,7 @@ wxThread::ExitCode InputThread::Entry()
                 image.SetRGB(x, y, red, green, blue);
             }
         }
+        delete[] imageData;
         
         {
             wxCriticalSectionLocker lock(sIcs);

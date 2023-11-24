@@ -23,8 +23,6 @@
 				"wxmsw32ud_core",
 				"-l",
 				"wxbase32ud",
-				"-l",
-				"wxbase32ud_net",
 				"-lws2_32"
 			],
 			"options": {
@@ -61,8 +59,6 @@
 				"wxmsw32ud_core",
 				"-l",
 				"wxbase32ud",
-				"-l",
-				"wxbase32ud_net",
 				"-lws2_32"
 			],
 			"options": {

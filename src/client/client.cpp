@@ -11,7 +11,7 @@ bool MyClientApp::OnInit()
 }
 
 MyClientFrame::MyClientFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style)
-    : wxFrame(NULL, wxID_ANY, title, pos, size, style), dataScreenImage(1280, 720), screenImage(1280, 720)
+    : wxFrame(NULL, wxID_ANY, title, pos, size, style), screenImage(1280, 720)
 {
     stop = false;
     panel = new wxPanel(this, wxID_ANY);
@@ -27,9 +27,7 @@ MyClientFrame::MyClientFrame(const wxString &title, const wxPoint &pos, const wx
     
     LayoutClientScreen();
 
-    updatingScreenTimer = new wxTimer(this, wxID_TIMER);
-    Bind(wxEVT_TIMER, &MyClientFrame::OnUpdatingScreenTimer, this, wxID_TIMER);
-    updatingScreenTimer->Start(16);
+    displayScreenWindow = new DisplayScreenFrame(wxT("Display Screen Window"), wxDefaultPosition, wxSize(1297, 760), screenImage, sIcs);
 
     Bind(wxEVT_CLOSE_WINDOW, &MyClientFrame::OnClose, this);
 }
@@ -45,26 +43,20 @@ void MyClientFrame::LayoutClientScreen()
     panel->SetSizer(sizer);
 }
 
-void MyClientFrame::OnInputThreadDestruction()
+void MyClientFrame::OnSocketThreadDestruction()
 {
     connectButton->Enable();
-    inputThread = nullptr;
-}
-
-void MyClientFrame::OnUpdatingScreenTimer(wxTimerEvent &e)
-{
-    wxCriticalSectionLocker lock(sIcs);
-    dataScreenImage = screenImage;
+    socketThread = nullptr;
 }
 
 void MyClientFrame::OnConnectButton(wxCommandEvent &e)
 {
     connectButton->Disable();
-    inputThread = new InputThread(this, screenImage, sIcs);
-    if (inputThread->Run() != wxTHREAD_NO_ERROR)
+    socketThread = new SocketThread(this, screenImage, sIcs);
+    if (socketThread->Run() != wxTHREAD_NO_ERROR)
     {
         logBox->AppendText(wxT("Failed to create InputThread!\n"));
-        delete inputThread;
+        delete socketThread;
     }
     else
     {
@@ -74,13 +66,12 @@ void MyClientFrame::OnConnectButton(wxCommandEvent &e)
 
 void MyClientFrame::OnDisplayButton(wxCommandEvent &e)
 {
-    DisplayScreenFrame *displayScrenWindow = new DisplayScreenFrame(wxT("Display Screen Window"), wxDefaultPosition, wxSize(1297, 760), dataScreenImage);
-    displayScrenWindow->Show(true);
-    displayScrenWindow->Centre();
+    
+    displayScreenWindow->Show(true);
+    displayScreenWindow->Centre();
 }
 
 void MyClientFrame::OnClose(wxCloseEvent& e)
 {
-    updatingScreenTimer->Stop();
     Destroy();
 }

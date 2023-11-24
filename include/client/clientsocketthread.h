@@ -7,27 +7,27 @@
 
 #define SIZE 2764800
 
-class InputThreadCallback
+class SocketThreadCallback
 {
-public:
-    virtual void OnInputThreadDestruction() = 0;
+    public:
+        virtual void OnSocketThreadDestruction() = 0;
 };
 
-class InputThread : public wxThread
+class SocketThread : public wxThread
 {
-public:
-    InputThread(InputThreadCallback *callback, wxImage &screenImage, wxCriticalSection &sIcs);
-    virtual ~InputThread();
+    public:
+        SocketThread(SocketThreadCallback *callback, wxImage &screenImage, wxCriticalSection &sIcs);
+        virtual ~SocketThread();
 
-protected:
-    virtual ExitCode Entry();
+    protected:
+        virtual ExitCode Entry();
 
-private:
-    InputThreadCallback *callback;
-    wxImage &screenImage;
-    wxCriticalSection &sIcs;
+    private:
+        SocketThreadCallback *callback;
+        wxImage &screenImage;
+        wxCriticalSection &sIcs;
 
-    int i = 1;
+        int i = 1;
 };
 
 #endif

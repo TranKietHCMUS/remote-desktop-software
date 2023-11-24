@@ -1,7 +1,7 @@
 #include <displayscreen.h>
 
-DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxImage &screenImage, long style)
-    : wxFrame(NULL, wxID_ANY, title, pos, size, style), screenImage(screenImage)
+DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxImage &screenImage, wxCriticalSection &sIcs, long style)
+    : wxFrame(NULL, wxID_ANY, title, pos, size, style), screenImage(screenImage), sIcs(sIcs)
 { 
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -24,6 +24,7 @@ void DisplayScreenFrame::OnRefreshTimer(wxTimerEvent &e)
 void DisplayScreenFrame::OnPaint(wxPaintEvent &e)
 {
     wxPaintDC dc(this);
+    wxCriticalSectionLocker lock(sIcs);
     dc.DrawBitmap(wxBitmap(screenImage), 0, 0);
 }
 

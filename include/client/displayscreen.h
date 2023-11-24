@@ -11,10 +11,11 @@ enum
 class DisplayScreenFrame : public wxFrame
 {
     public:
-        DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxImage &screenImage, long style = wxDEFAULT_FRAME_STYLE | wxFULL_REPAINT_ON_RESIZE);
+        DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxImage &screenImage, wxCriticalSection &sIcs, long style = wxDEFAULT_FRAME_STYLE | wxFULL_REPAINT_ON_RESIZE);
         virtual ~DisplayScreenFrame();
     private:
         wxImage &screenImage;
+        wxCriticalSection &sIcs;
         wxTimer *refreshTimer;
 
         void OnRefreshTimer(wxTimerEvent &e);

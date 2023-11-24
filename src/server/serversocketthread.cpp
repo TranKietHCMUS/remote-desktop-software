@@ -1,13 +1,13 @@
 #include <serversocketthread.h>
 
-InputThread::InputThread(InputThreadCallback *callback, wxImage& capturedImage, wxCriticalSection& cIcs)
+SocketThread::SocketThread(SocketThreadCallback *callback, wxImage& capturedImage, wxCriticalSection& cIcs)
     : callback(callback), capturedImage(capturedImage), cIcs(cIcs) {}
-InputThread::~InputThread()
+SocketThread::~SocketThread()
 {
-    callback->OnInputThreadDestruction();
+    callback->OnSocketThreadDestruction();
 }
 
-wxThread::ExitCode InputThread::Entry()
+wxThread::ExitCode SocketThread::Entry()
 {
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -81,6 +81,8 @@ wxThread::ExitCode InputThread::Entry()
             WSACleanup();
             return nullptr;
         }
+
+        delete[] bytes;
     }
 
     closesocket(clientSocket);

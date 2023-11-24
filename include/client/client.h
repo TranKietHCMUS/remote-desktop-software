@@ -7,48 +7,43 @@
 
 class MyClientApp : public wxApp
 {
-public:
-    bool OnInit() override;
+    public:
+        bool OnInit() override;
 };
 
 enum
 {
     wxID_CONNECT_BUTTON,
     wxID_DISPLAY_BUTTON,
-    wxID_STOP_BUTTON,
-    wxID_TIMER = wxID_HIGHEST + 1,
-    wxID_SOCKET,
 };
 
-class MyClientFrame : public wxFrame, public InputThreadCallback
+class MyClientFrame : public wxFrame, public SocketThreadCallback
 {
-public:
-    MyClientFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
-    virtual ~MyClientFrame();
+    public:
+        MyClientFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
+        virtual ~MyClientFrame();
 
-private:
-    bool stop;
-    wxPanel *panel;
-    wxButton *connectButton;
-    wxButton *displayButton;
-    wxButton *stopButton;
-    wxTextCtrl *logBox;
+    private:
+        bool stop;
+        wxPanel *panel;
+        wxButton *connectButton;
+        wxButton *displayButton;
+        wxButton *stopButton;
+        wxTextCtrl *logBox;
 
-    wxImage dataScreenImage;
-    wxTimer *updatingScreenTimer;
+        wxImage screenImage;
+        wxCriticalSection sIcs;
 
-    wxImage screenImage;
-    wxCriticalSection sIcs;
+        SocketThread *socketThread;
 
-    InputThread *inputThread;
+        DisplayScreenFrame *displayScreenWindow;
 
-    void OnInputThreadDestruction() override;
+        void OnSocketThreadDestruction() override;
 
-    void LayoutClientScreen();
-    void OnUpdatingScreenTimer(wxTimerEvent &e);
-    void OnConnectButton(wxCommandEvent &e);
-    void OnDisplayButton(wxCommandEvent &e);
-    void OnClose(wxCloseEvent &e);
+        void LayoutClientScreen();
+        void OnConnectButton(wxCommandEvent &e);
+        void OnDisplayButton(wxCommandEvent &e);
+        void OnClose(wxCloseEvent &e);
 };
 
 #endif

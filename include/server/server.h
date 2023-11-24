@@ -14,34 +14,32 @@ enum
 {
     wxID_BUTTON,
     wxID_TIMER = wxID_HIGHEST,
-    wxID_SERVER,
-    wxID_SOCKET,
 };
 
-class MyServerFrame : public wxFrame, public InputThreadCallback
+class MyServerFrame : public wxFrame, public SocketThreadCallback
 {
-public:
-    MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
-    virtual ~MyServerFrame();
+    public:
+        MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
+        virtual ~MyServerFrame();
 
-private:
-    wxPanel *panel;
-    wxButton *allowButton;
-    wxTextCtrl *logBox;
+    private:
+        wxPanel *panel;
+        wxButton *allowButton;
+        wxTextCtrl *logBox;
 
-    wxTimer *capturingTimer;
+        wxTimer *capturingTimer;
 
-    wxImage capturedImage;
-    wxCriticalSection cIcs;
+        wxImage capturedImage;
+        wxCriticalSection cIcs;
 
-    InputThread *inputThread;
+        SocketThread *socketThread;
 
-    void OnInputThreadDestruction() override;
+        void OnSocketThreadDestruction() override;
 
-    void OnClickAllowButton(wxCommandEvent &e);
-    void OnCapturingTimer(wxTimerEvent &e);
-    void LayoutServerScreen();
-    void OnClose(wxCloseEvent &e);
+        void OnClickAllowButton(wxCommandEvent &e);
+        void OnCapturingTimer(wxTimerEvent &e);
+        void LayoutServerScreen();
+        void OnClose(wxCloseEvent &e);
 };
 
 #endif
