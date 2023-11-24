@@ -1,7 +1,7 @@
 #include <clientsocketthread.h>
 
-InputThread::InputThread(InputThreadCallback *callback, bool &stop, wxImage &screenImage, wxCriticalSection &sIcs)
-    : callback(callback), stop(stop), screenImage(screenImage), sIcs(sIcs) {}
+InputThread::InputThread(InputThreadCallback *callback, wxImage &screenImage, wxCriticalSection &sIcs)
+    : callback(callback), screenImage(screenImage), sIcs(sIcs) {}
 InputThread::~InputThread()
 {
     callback->OnInputThreadDestruction();
@@ -9,70 +9,49 @@ InputThread::~InputThread()
 
 wxThread::ExitCode InputThread::Entry()
 {
-    // Khởi tạo Winsock
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {
-        wxMessageBox("Failed to initialize Winsock.", "Error", wxOK | wxICON_ERROR);
-        // Close();
+        std::cerr << "Failed to initialize Winsock." << std::endl;
         return nullptr;
     }
 
-    // Tạo socket
     SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket == INVALID_SOCKET)
     {
-        wxMessageBox("Failed to create socket.", "Error", wxOK | wxICON_ERROR);
+        std::cerr << "Failed to create socket." << std::endl;
         WSACleanup();
-        // Close();
         return nullptr;
     }
 
-    // Kết nối đến server
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(8080);                   // Cổng server
-    serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); // Địa chỉ IP server
+    serverAddress.sin_port = htons(16165);                 
+    serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     if (connect(clientSocket, reinterpret_cast<sockaddr *>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR)
     {
-        wxMessageBox("Failed to connect to the server.", "Error", wxOK | wxICON_ERROR);
+        std::cerr << "Failed to connect to server." << std::endl;
         closesocket(clientSocket);
         WSACleanup();
-        // Close();
         return nullptr;
     }
-    wxPNGHandler *handler = new wxPNGHandler;
-    wxImage::AddHandler(handler);
 
-    while (!stop)
+    while (true)
     {
-        // Chuỗi cần gửi
-        const char *message = ".";
+        // const char message = '.';
 
-        // Gửi chuỗi
-        if (send(clientSocket, message, strlen(message), 0) == SOCKET_ERROR)
-        {
-            std::cerr << "Failed to send string." << std::endl;
-            break;
-        }
-        // Nhận kích thước dữ liệu ảnh
-        size_t dataSizeNetworkOrder;
-        if (recv(clientSocket, reinterpret_cast<char *>(&dataSizeNetworkOrder), sizeof(dataSizeNetworkOrder), 0) == SOCKET_ERROR)
-        {
-            std::cerr << "Failed to receive image data size." << std::endl;
-            closesocket(clientSocket);
-            WSACleanup();
-        }
+        // if (send(clientSocket, &message, sizeof(char), 0) == SOCKET_ERROR)
+        // {
+        //     std::cerr << "Failed to send string." << std::endl;
+        //     break;
+        // }
 
-        size_t dataSize = ntohl(dataSizeNetworkOrder);
-
-        // Nhận dữ liệu ảnh
-        std::vector<char> imageData(dataSize);
+        unsigned char* imageData = new unsigned char[SIZE];
         size_t totalReceived = 0;
-        while (totalReceived < dataSize)
+        while (totalReceived < SIZE)
         {
-            int received = recv(clientSocket, imageData.data() + totalReceived, dataSize - totalReceived, 0);
+            int received = recv(clientSocket, (char*)imageData + totalReceived, SIZE - totalReceived, 0);
             if (received == SOCKET_ERROR)
             {
                 std::cerr << "Failed to receive image data." << std::endl;
@@ -82,12 +61,25 @@ wxThread::ExitCode InputThread::Entry()
             }
             totalReceived += received;
         }
-        printf("%d\n", totalReceived);
-        wxMemoryInputStream stream(imageData.data(), dataSize);
+
+        wxImage image(1280, 720, true);
+        for (int y = 0; y < 720; ++y) {
+            for (int x = 0; x < 1280; ++x)
+            {
+                int index = (y * 1280 + x) * 3;
+                unsigned char red = imageData[index];
+                unsigned char green = imageData[index + 1];
+                unsigned char blue = imageData[index + 2];
+                image.SetRGB(x, y, red, green, blue);
+            }
+        }
+        
         {
             wxCriticalSectionLocker lock(sIcs);
-            screenImage.LoadFile(stream, wxBITMAP_TYPE_PNG);
+            screenImage = image;
         }
+
+        std::cout << ++i << "\n";
     }
 
     closesocket(clientSocket);

@@ -2,11 +2,8 @@
 #define CLIENT_H
 
 #include <wx/wx.h>
-#include <wx/socket.h>
-#include <displayscreen.h>
 #include <clientsocketthread.h>
-
-#pragma comment(lib, "Ws2_32.lib")
+#include <displayscreen.h>
 
 class MyClientApp : public wxApp
 {
@@ -44,18 +41,14 @@ private:
     wxCriticalSection sIcs;
 
     InputThread *inputThread;
-    wxCriticalSection iTcs;
+
     void OnInputThreadDestruction() override;
 
     void LayoutClientScreen();
     void OnUpdatingScreenTimer(wxTimerEvent &e);
     void OnConnectButton(wxCommandEvent &e);
-    void StopButton(wxCommandEvent &e);
     void OnDisplayButton(wxCommandEvent &e);
-    // void OnClientSocket(wxSocketEvent &e);
-    // void OnClose(wxCloseEvent &e);
-
-    wxDECLARE_EVENT_TABLE();
+    void OnClose(wxCloseEvent &e);
 };
 
 #endif

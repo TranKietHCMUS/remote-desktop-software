@@ -1,9 +1,5 @@
 #include <displayscreen.h>
 
-wxBEGIN_EVENT_TABLE(DisplayScreenFrame, wxFrame)
-    EVT_PAINT(DisplayScreenFrame::OnPaint)
-wxEND_EVENT_TABLE()
-
 DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxImage &screenImage, long style)
     : wxFrame(NULL, wxID_ANY, title, pos, size, style), screenImage(screenImage)
 { 
@@ -12,6 +8,8 @@ DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos
     refreshTimer = new wxTimer(this, wxID_REFRESH_TIMER);
     Bind(wxEVT_TIMER, &DisplayScreenFrame::OnRefreshTimer, this, wxID_REFRESH_TIMER);
     refreshTimer->Start(16);
+
+    Bind(wxEVT_PAINT, &DisplayScreenFrame::OnPaint, this);
 
     Bind(wxEVT_CLOSE_WINDOW, &DisplayScreenFrame::OnClose, this);
 }

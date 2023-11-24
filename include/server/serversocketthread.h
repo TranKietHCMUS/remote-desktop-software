@@ -2,14 +2,9 @@
 #define SERVERSOCKETTHREAD_H
 
 #include <wx/wx.h>
-#include <wx/socket.h>
-#include <wx/mstream.h>
 #include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
-#include <fstream>
-#include <wx/mstream.h>
-#include <wx/image.h>
+
+#define SIZE 2764800
 
 class InputThreadCallback
 {
@@ -20,7 +15,7 @@ public:
 class InputThread : public wxThread
 {
 public:
-    InputThread(InputThreadCallback *callback);
+    InputThread(InputThreadCallback *callback, wxImage& capturedImage, wxCriticalSection& cIcs);
     virtual ~InputThread();
 
 protected:
@@ -28,6 +23,8 @@ protected:
 
 private:
     InputThreadCallback *callback;
+    wxImage& capturedImage;
+    wxCriticalSection& cIcs;
 };
 
 #endif

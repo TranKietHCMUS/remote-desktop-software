@@ -4,7 +4,7 @@
 		{
 			"type": "cppbuild",
 			"label": "Debug Server",
-			"command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+			"command": "D:\\msys2\\ucrt64\\bin\\g++.exe",
 			"args": [
 				"-fdiagnostics-color=always",
 				"-g",
@@ -37,12 +37,12 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: C:\\msys64\\ucrt64\\bin\\g++.exe"
+			"detail": "compiler: D:\\msys2\\ucrt64\\bin\\g++.exe"
 		},
 		{
 			"type": "cppbuild",
 			"label": "Debug Client",
-			"command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+			"command": "D:\\msys2\\ucrt64\\bin\\g++.exe",
 			"args": [
 				"-fdiagnostics-color=always",
 				"-g",
@@ -75,12 +75,12 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: C:\\msys64\\ucrt64\\bin\\g++.exe"
+			"detail": "compiler: D:\\msys2\\ucrt64\\bin\\g++.exe"
 		},
 		{
 			"type": "cppbuild",
 			"label": "Release",
-			"command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+			"command": "D:\\msys2\\ucrt64\\bin\\g++.exe",
 			"args": [
 				"-fdiagnostics-color=always",
 				"${workspaceFolder}\\src\\*.cpp",
@@ -110,7 +110,7 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: C:\\msys64\\ucrt64\\bin\\g++.exe"
+			"detail": "compiler: D:\\msys2\\ucrt64\\bin\\g++.exe"
 		}
 	]
 }

@@ -10,12 +10,8 @@ bool MyClientApp::OnInit()
     return true;
 }
 
-wxBEGIN_EVENT_TABLE(MyClientFrame, wxFrame)
-    // EVT_SOCKET(wxID_SOCKET, MyClientFrame::OnClientSocket)
-    wxEND_EVENT_TABLE();
-
 MyClientFrame::MyClientFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style)
-    : wxFrame(NULL, wxID_ANY, title, pos, size, style), dataScreenImage(1, 1), screenImage(1, 1)
+    : wxFrame(NULL, wxID_ANY, title, pos, size, style), dataScreenImage(1280, 720), screenImage(1280, 720)
 {
     stop = false;
     panel = new wxPanel(this, wxID_ANY);
@@ -26,18 +22,16 @@ MyClientFrame::MyClientFrame(const wxString &title, const wxPoint &pos, const wx
     displayButton = new wxButton(panel, wxID_DISPLAY_BUTTON, wxT("Display Screen"));
     displayButton->Bind(wxEVT_BUTTON, &MyClientFrame::OnDisplayButton, this, wxID_DISPLAY_BUTTON);
 
-    stopButton = new wxButton(panel, wxID_STOP_BUTTON, wxT("Stop"));
-    stopButton->Bind(wxEVT_BUTTON, &MyClientFrame::StopButton, this, wxID_STOP_BUTTON);
-
     logBox = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
                             wxTE_MULTILINE | wxTE_BESTWRAP | wxTE_READONLY);
+    
     LayoutClientScreen();
 
     updatingScreenTimer = new wxTimer(this, wxID_TIMER);
     Bind(wxEVT_TIMER, &MyClientFrame::OnUpdatingScreenTimer, this, wxID_TIMER);
     updatingScreenTimer->Start(16);
 
-    // Bind(wxEVT_CLOSE_WINDOW, &MyClientFrame::OnClose, this);
+    Bind(wxEVT_CLOSE_WINDOW, &MyClientFrame::OnClose, this);
 }
 
 MyClientFrame::~MyClientFrame() {}
@@ -47,14 +41,13 @@ void MyClientFrame::LayoutClientScreen()
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(connectButton, 0, wxALL, 10);
     sizer->Add(displayButton, 0, wxALL, 10);
-    sizer->Add(stopButton, 0, wxALL, 10);
     sizer->Add(logBox, 1, wxEXPAND | wxALL, 10);
     panel->SetSizer(sizer);
 }
 
 void MyClientFrame::OnInputThreadDestruction()
 {
-    wxCriticalSectionLocker lock(iTcs);
+    connectButton->Enable();
     inputThread = nullptr;
 }
 
@@ -67,7 +60,7 @@ void MyClientFrame::OnUpdatingScreenTimer(wxTimerEvent &e)
 void MyClientFrame::OnConnectButton(wxCommandEvent &e)
 {
     connectButton->Disable();
-    inputThread = new InputThread(this, stop, screenImage, sIcs);
+    inputThread = new InputThread(this, screenImage, sIcs);
     if (inputThread->Run() != wxTHREAD_NO_ERROR)
     {
         logBox->AppendText(wxT("Failed to create InputThread!\n"));
@@ -79,14 +72,15 @@ void MyClientFrame::OnConnectButton(wxCommandEvent &e)
     }
 }
 
-void MyClientFrame::StopButton(wxCommandEvent &e)
-{
-    stop = true;
-}
-
 void MyClientFrame::OnDisplayButton(wxCommandEvent &e)
 {
-    DisplayScreenFrame *displayScrenWindow = new DisplayScreenFrame(wxT("Display Screen Window"), wxDefaultPosition, wxSize(800, 450), dataScreenImage);
+    DisplayScreenFrame *displayScrenWindow = new DisplayScreenFrame(wxT("Display Screen Window"), wxDefaultPosition, wxSize(1297, 760), dataScreenImage);
     displayScrenWindow->Show(true);
     displayScrenWindow->Centre();
+}
+
+void MyClientFrame::OnClose(wxCloseEvent& e)
+{
+    updatingScreenTimer->Stop();
+    Destroy();
 }

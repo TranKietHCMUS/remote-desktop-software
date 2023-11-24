@@ -2,10 +2,7 @@
 #define SERVER_H
 
 #include <wx/wx.h>
-#include <wx/mstream.h>
-#include <wx/image.h>
 #include <serversocketthread.h>
-#pragma comment(lib, "ws2_32.lib")
 
 class MyServerApp : public wxApp
 {
@@ -38,17 +35,13 @@ private:
     wxCriticalSection cIcs;
 
     InputThread *inputThread;
-    wxCriticalSection iTcs;
+
     void OnInputThreadDestruction() override;
 
     void OnClickAllowButton(wxCommandEvent &e);
-    // void OnServerConnection(wxSocketEvent &e);
-    // void OnServerSocket(wxSocketEvent &e);
     void OnCapturingTimer(wxTimerEvent &e);
     void LayoutServerScreen();
     void OnClose(wxCloseEvent &e);
-
-    wxDECLARE_EVENT_TABLE();
 };
 
 #endif

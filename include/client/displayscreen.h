@@ -20,8 +20,6 @@ class DisplayScreenFrame : public wxFrame
         void OnRefreshTimer(wxTimerEvent &e);
         void OnPaint(wxPaintEvent &e);
         void OnClose(wxCloseEvent &e);
-
-        wxDECLARE_EVENT_TABLE();
 };
 
 #endif

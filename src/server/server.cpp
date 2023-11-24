@@ -10,11 +10,8 @@ bool MyServerApp::OnInit()
     return true;
 }
 
-wxBEGIN_EVENT_TABLE(MyServerFrame, wxFrame)
-    wxEND_EVENT_TABLE()
-
-        MyServerFrame::MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style)
-    : wxFrame(NULL, wxID_ANY, title, pos, size, style), capturedImage(1, 1)
+MyServerFrame::MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style)
+    : wxFrame(NULL, wxID_ANY, title, pos, size, style), capturedImage(1600, 900)
 {
     panel = new wxPanel(this, wxID_ANY);
 
@@ -24,11 +21,11 @@ wxBEGIN_EVENT_TABLE(MyServerFrame, wxFrame)
     logBox = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
                             wxTE_MULTILINE | wxTE_BESTWRAP | wxTE_READONLY);
 
+    LayoutServerScreen();
+
     capturingTimer = new wxTimer(this, wxID_TIMER);
     Bind(wxEVT_TIMER, &MyServerFrame::OnCapturingTimer, this, wxID_TIMER);
     capturingTimer->Start(16);
-
-    LayoutServerScreen();
 
     Bind(wxEVT_CLOSE_WINDOW, &MyServerFrame::OnClose, this);
 }
@@ -45,14 +42,14 @@ void MyServerFrame::LayoutServerScreen()
 
 void MyServerFrame::OnInputThreadDestruction()
 {
-    wxCriticalSectionLocker lock(iTcs);
+    allowButton->Enable();
     inputThread = nullptr;
 }
 
 void MyServerFrame::OnClickAllowButton(wxCommandEvent &e)
 {
     allowButton->Disable();
-    inputThread = new InputThread(this);
+    inputThread = new InputThread(this, capturedImage, cIcs);
     if (inputThread->Run() != wxTHREAD_NO_ERROR)
     {
         logBox->AppendText(wxT("Failed to create InputThread!\n"));
@@ -78,6 +75,7 @@ void MyServerFrame::OnCapturingTimer(wxTimerEvent &e)
 
     wxCriticalSectionLocker lock(cIcs);
     capturedImage = bitmap.ConvertToImage();
+    capturedImage = capturedImage.Rescale(1280, 720, wxIMAGE_QUALITY_HIGH);
 }
 
 void MyServerFrame::OnClose(wxCloseEvent &e)
