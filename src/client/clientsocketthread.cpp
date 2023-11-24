@@ -54,7 +54,7 @@ wxThread::ExitCode InputThread::Entry()
             int received = recv(clientSocket, (char*)imageData + totalReceived, SIZE - totalReceived, 0);
             if (received == SOCKET_ERROR)
             {
-                std::cerr << "Failed to receive image data." << std::endl;
+                std::cerr << "Failed to receive image." << std::endl;
                 closesocket(clientSocket);
                 WSACleanup();
                 return nullptr;

@@ -48,6 +48,8 @@ wxThread::ExitCode InputThread::Entry()
         return nullptr;
     }
 
+    closesocket(serverSocket);
+
     while (true)
     {
         // char response;
@@ -74,6 +76,7 @@ wxThread::ExitCode InputThread::Entry()
 
         if (send(clientSocket, reinterpret_cast<char *>(bytes), SIZE, 0) == SOCKET_ERROR)
         {
+            std::cerr << "Failed to send image." << std::endl;
             closesocket(clientSocket);
             WSACleanup();
             return nullptr;
@@ -81,7 +84,6 @@ wxThread::ExitCode InputThread::Entry()
     }
 
     closesocket(clientSocket);
-    closesocket(serverSocket);
     WSACleanup();
 
     return nullptr;
