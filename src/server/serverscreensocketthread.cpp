@@ -1,25 +1,18 @@
-#include <serversocketthread.h>
+#include <serverscreensocketthread.h>
 
-SocketThread::SocketThread(SocketThreadCallback *callback, wxImage& capturedImage, wxCriticalSection& cIcs)
+ScreenSocketThread::ScreenSocketThread(ScreenSocketThreadCallback *callback, wxImage& capturedImage, wxCriticalSection& cIcs)
     : callback(callback), capturedImage(capturedImage), cIcs(cIcs) {}
-SocketThread::~SocketThread()
+ScreenSocketThread::~ScreenSocketThread()
 {
-    callback->OnSocketThreadDestruction();
+    callback->OnScreenSocketThreadDestruction();
 }
 
-wxThread::ExitCode SocketThread::Entry()
+wxThread::ExitCode ScreenSocketThread::Entry()
 {
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-    {
-        std::cerr << "Failed to initialize Winsock." << std::endl;
-        return nullptr;
-    }
-
     SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == INVALID_SOCKET)
     {
-        std::cerr << "Failed to create socket." << std::endl;
+        std::cerr << "Failed to create socket." << "\n";
         WSACleanup();
         return nullptr;
     }
@@ -31,7 +24,7 @@ wxThread::ExitCode SocketThread::Entry()
 
     if (bind(serverSocket, reinterpret_cast<sockaddr *>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR)
     {
-        std::cerr << "Failed to bind socket." << std::endl;
+        std::cerr << "Failed to bind socket." << "\n";
         closesocket(serverSocket);
         WSACleanup();
         return nullptr;
@@ -42,7 +35,7 @@ wxThread::ExitCode SocketThread::Entry()
     SOCKET clientSocket = accept(serverSocket, nullptr, nullptr);
     if (clientSocket == INVALID_SOCKET)
     {
-        std::cerr << "Failed to accept client connection." << std::endl;
+        std::cerr << "Failed to accept client connection." << "\n";
         closesocket(serverSocket);
         WSACleanup();
         return nullptr;
@@ -52,37 +45,30 @@ wxThread::ExitCode SocketThread::Entry()
 
     while (true)
     {
-        // char response;
-        // int bytesRead = recv(clientSocket, &response, sizeof(char), 0);
-        // if (bytesRead <= 0)
-        // {
-        //     std::cerr << "Failed to receive data." << std::endl;
-        //     return nullptr;
-        // }
-        
-        unsigned char* bytes = new unsigned char[SIZE];
+        unsigned char* imageData = new unsigned char[SIZE];
         {
             wxCriticalSectionLocker lock(cIcs);    
             for (int y = 0; y < 720; ++y)
             {
                 for (int x = 0; x < 1280; ++x) {
                     int index = (y * 1280 + x) * 3;
-                    bytes[index] = capturedImage.GetRed(x, y);
-                    bytes[index + 1] = capturedImage.GetGreen(x, y);
-                    bytes[index + 2] = capturedImage.GetBlue(x, y);
+                    imageData[index] = capturedImage.GetRed(x, y);
+                    imageData[index + 1] = capturedImage.GetGreen(x, y);
+                    imageData[index + 2] = capturedImage.GetBlue(x, y);
                 }
             }
         }
 
-        if (send(clientSocket, reinterpret_cast<char *>(bytes), SIZE, 0) == SOCKET_ERROR)
+        if (send(clientSocket, (char *)imageData, SIZE, 0) == SOCKET_ERROR)
         {
-            std::cerr << "Failed to send image." << std::endl;
+            std::cerr << "Failed to send image." << "\n";
             closesocket(clientSocket);
             WSACleanup();
+            delete[] imageData;
             return nullptr;
         }
 
-        delete[] bytes;
+        delete[] imageData;
     }
 
     closesocket(clientSocket);

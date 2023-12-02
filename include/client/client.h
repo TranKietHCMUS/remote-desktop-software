@@ -2,7 +2,8 @@
 #define CLIENT_H
 
 #include <wx/wx.h>
-#include <clientsocketthread.h>
+#include <clienteventsocketthread.h>
+#include <clientscreensocketthread.h>
 #include <displayscreen.h>
 
 class MyClientApp : public wxApp
@@ -17,14 +18,13 @@ enum
     wxID_DISPLAY_BUTTON,
 };
 
-class MyClientFrame : public wxFrame, public SocketThreadCallback
+class MyClientFrame : public wxFrame, public ScreenSocketThreadCallback, public EventSocketThreadCallback
 {
     public:
         MyClientFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
         virtual ~MyClientFrame();
 
     private:
-        bool stop;
         wxPanel *panel;
         wxButton *connectButton;
         wxButton *displayButton;
@@ -34,11 +34,18 @@ class MyClientFrame : public wxFrame, public SocketThreadCallback
         wxImage screenImage;
         wxCriticalSection sIcs;
 
-        SocketThread *socketThread;
+        std::queue<msg> msgQueue;
+        wxCriticalSection mQcs;
+
+        WSADATA wsaData;
+
+        ScreenSocketThread *screenSocketThread;
+        EventSocketThread *eventSocketThread;
 
         DisplayScreenFrame *displayScreenWindow;
 
-        void OnSocketThreadDestruction() override;
+        void OnScreenSocketThreadDestruction() override;
+        void OnEventSocketThreadDestruction() override;
 
         void LayoutClientScreen();
         void OnConnectButton(wxCommandEvent &e);
