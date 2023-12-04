@@ -28,8 +28,10 @@ class MyClientFrame : public wxFrame, public ScreenSocketThreadCallback, public 
         wxPanel *panel;
         wxButton *connectButton;
         wxButton *displayButton;
-        wxButton *stopButton;
+        wxTextCtrl *inputBox;
         wxTextCtrl *logBox;
+
+        wxString ip;
 
         wxImage screenImage;
         wxCriticalSection sIcs;
@@ -44,12 +46,17 @@ class MyClientFrame : public wxFrame, public ScreenSocketThreadCallback, public 
 
         DisplayScreenFrame *displayScreenWindow;
 
+        bool quitScreen;
+        bool quitEvent;
+
         void OnScreenSocketThreadDestruction() override;
         void OnEventSocketThreadDestruction() override;
 
         void LayoutClientScreen();
         void OnConnectButton(wxCommandEvent &e);
         void OnDisplayButton(wxCommandEvent &e);
+        void OnTextEnter(wxCommandEvent &e);
+        void OnScreenClose(wxCloseEvent &e);
         void OnClose(wxCloseEvent &e);
 };
 

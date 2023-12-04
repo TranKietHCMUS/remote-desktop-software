@@ -15,7 +15,7 @@ public:
 class EventSocketThread : public wxThread
 {
 public:
-    EventSocketThread(EventSocketThreadCallback *callback, std::queue<msg> &msgQueue, wxCriticalSection &mQcs);
+    EventSocketThread(EventSocketThreadCallback *callback, wxString &ip, std::queue<msg> &msgQueue, wxCriticalSection &mQcs);
     virtual ~EventSocketThread();
 
 protected:
@@ -23,6 +23,7 @@ protected:
 
 private:
     EventSocketThreadCallback *callback;
+    wxString &ip;
     std::queue<msg> &msgQueue;
     wxCriticalSection &mQcs;
 };

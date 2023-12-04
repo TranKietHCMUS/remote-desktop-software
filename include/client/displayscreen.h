@@ -33,6 +33,7 @@ class DisplayScreenFrame : public wxFrame
         void OnRightDown(wxMouseEvent& e);
         void OnRightUp(wxMouseEvent& e);
         void OnRightDClick(wxMouseEvent& e);
+        void OnMouseWheel(wxMouseEvent& e);
         void OnKeyDown(wxKeyEvent& e);
         void OnKeyUp(wxKeyEvent& e);
 

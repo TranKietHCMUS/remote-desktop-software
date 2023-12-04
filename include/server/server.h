@@ -44,6 +44,9 @@ class MyServerFrame : public wxFrame, public ScreenSocketThreadCallback, public 
         EventSocketThread *eventSocketThread;
         EventThread *eventThread;
 
+        bool quitScreen;
+        bool quitEvent;
+
         void OnScreenSocketThreadDestruction() override;
         void OnEventSocketThreadDestruction() override;
         void OnEventThreadDestruction() override;

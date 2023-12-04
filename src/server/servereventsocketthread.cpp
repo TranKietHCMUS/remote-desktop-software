@@ -42,11 +42,11 @@ wxThread::ExitCode EventSocketThread::Entry()
 
     while (true)
     {
-        unsigned char* data = new unsigned char[18];
+        unsigned char* data = new unsigned char[22];
         size_t totalReceived = 0;
-        while (totalReceived < 18)
+        while (totalReceived < 22)
         {
-            int received = recv(clientSocket, (char*)data + totalReceived, 18 - totalReceived, 0);
+            int received = recv(clientSocket, (char*)data + totalReceived, 22 - totalReceived, 0);
             if (received == SOCKET_ERROR)
             {
                 std::cerr << "Failed to receive event." << "\n";
@@ -57,7 +57,7 @@ wxThread::ExitCode EventSocketThread::Entry()
         }
 
         msg msg;
-        memcpy(&msg, data, 18);
+        memcpy(&msg, data, 22);
         {
             wxCriticalSectionLocker lock(mQcs);
             msgQueue.push(msg);

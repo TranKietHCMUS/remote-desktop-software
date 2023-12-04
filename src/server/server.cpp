@@ -30,6 +30,9 @@ MyServerFrame::MyServerFrame(const wxString &title, const wxPoint &pos, const wx
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
         std::cerr << "Failed to initialize Winsock." << "\n";
 
+    quitScreen = false;
+    quitEvent = false;
+
     Bind(wxEVT_CLOSE_WINDOW, &MyServerFrame::OnClose, this);
 }
 
@@ -45,11 +48,17 @@ void MyServerFrame::LayoutServerScreen()
 
 void MyServerFrame::OnScreenSocketThreadDestruction()
 {
+    quitScreen = true;
+    if (quitScreen && quitEvent)
+        allowButton->Enable();
     screenSocketThread = nullptr;
 }
 
 void MyServerFrame::OnEventSocketThreadDestruction()
 {
+    quitEvent = true;
+    if (quitScreen && quitEvent)
+        allowButton->Enable();
     eventSocketThread = nullptr;
 }
 
@@ -64,36 +73,15 @@ void MyServerFrame::OnClickAllowButton(wxCommandEvent &e)
 
     screenSocketThread = new ScreenSocketThread(this, capturedImage, cIcs);
     if (screenSocketThread->Run() != wxTHREAD_NO_ERROR)
-    {
-        logBox->AppendText(wxT("Failed to create ScreenThread!\n"));
         delete screenSocketThread;
-    }
-    else
-    {
-        logBox->AppendText(wxT("Created ScreenThread!\n"));
-    }
-
+    
     eventSocketThread = new EventSocketThread(this, msgQueue, mQcs);
     if (eventSocketThread->Run() != wxTHREAD_NO_ERROR)
-    {
-        logBox->AppendText(wxT("Failed to create EventThread!\n"));
         delete eventSocketThread;
-    }
-    else
-    {
-        logBox->AppendText(wxT("Created EventThread!\n"));
-    }
 
     eventThread = new EventThread(this, msgQueue, mQcs);
     if (eventThread->Run() != wxTHREAD_NO_ERROR)
-    {
-        logBox->AppendText(wxT("Failed to create EThread!\n"));
         delete eventThread;
-    }
-    else
-    {
-        logBox->AppendText(wxT("Created EThread!\n"));
-    }
 }
 
 void MyServerFrame::OnCapturingTimer(wxTimerEvent &e)

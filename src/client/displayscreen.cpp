@@ -8,7 +8,7 @@ DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos
     refreshTimer = new wxTimer(this, wxID_REFRESH_TIMER);
     Bind(wxEVT_TIMER, &DisplayScreenFrame::OnRefreshTimer, this, wxID_REFRESH_TIMER);
     refreshTimer->Start(16);
-    
+
     Bind(wxEVT_MOTION, &DisplayScreenFrame::OnMotion, this);
     Bind(wxEVT_LEFT_DOWN, &DisplayScreenFrame::OnLeftDown, this);
     Bind(wxEVT_LEFT_UP, &DisplayScreenFrame::OnLeftUp, this);
@@ -16,6 +16,7 @@ DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos
     Bind(wxEVT_RIGHT_DOWN, &DisplayScreenFrame::OnRightDown, this);
     Bind(wxEVT_RIGHT_UP, &DisplayScreenFrame::OnRightUp, this);
     Bind(wxEVT_RIGHT_DCLICK, &DisplayScreenFrame::OnRightDClick, this);
+    Bind(wxEVT_MOUSEWHEEL, &DisplayScreenFrame::OnMouseWheel, this);
     Bind(wxEVT_KEY_DOWN, &DisplayScreenFrame::OnKeyDown, this);
     Bind(wxEVT_KEY_UP, &DisplayScreenFrame::OnKeyUp, this);
 
@@ -38,7 +39,8 @@ void DisplayScreenFrame::OnMotion(wxMouseEvent& e)
     msg.type = 0;
     msg.flag = 0;
     msg.x = p.x;
-    msg.y = p.y; 
+    msg.y = p.y;
+    msg.data = 0; 
     msg.keyCode = 0;
 
     {
@@ -56,7 +58,8 @@ void DisplayScreenFrame::OnLeftDown(wxMouseEvent& e)
     msg.type = 0;
     msg.flag = 1;
     msg.x = p.x;
-    msg.y = p.y; 
+    msg.y = p.y;
+    msg.data = 0; 
     msg.keyCode = 0;
 
     {
@@ -75,6 +78,7 @@ void DisplayScreenFrame::OnLeftUp(wxMouseEvent& e)
     msg.flag = 2;
     msg.x = p.x;
     msg.y = p.y; 
+    msg.data = 0;
     msg.keyCode = 0;
 
     {
@@ -93,6 +97,7 @@ void DisplayScreenFrame::OnLeftDClick(wxMouseEvent& e)
     msg.flag = 3;
     msg.x = p.x;
     msg.y = p.y; 
+    msg.data = 0;
     msg.keyCode = 0;
 
     {
@@ -111,6 +116,7 @@ void DisplayScreenFrame::OnRightDown(wxMouseEvent& e)
     msg.flag = 4;
     msg.x = p.x;
     msg.y = p.y; 
+    msg.data = 0;
     msg.keyCode = 0;
 
     {
@@ -129,6 +135,7 @@ void DisplayScreenFrame::OnRightUp(wxMouseEvent& e)
     msg.flag = 5;
     msg.x = p.x;
     msg.y = p.y; 
+    msg.data = 0;
     msg.keyCode = 0;
 
     {
@@ -147,6 +154,26 @@ void DisplayScreenFrame::OnRightDClick(wxMouseEvent& e)
     msg.flag = 6;
     msg.x = p.x;
     msg.y = p.y; 
+    msg.data = 0;
+    msg.keyCode = 0;
+
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+    
+    e.Skip();
+}
+
+void DisplayScreenFrame::OnMouseWheel(wxMouseEvent& e)
+{
+    wxPoint p = e.GetPosition();
+    msg msg;
+    msg.type = 0;
+    msg.flag = 7;
+    msg.x = p.x;
+    msg.y = p.y;
+    msg.data = e.GetWheelRotation(); 
     msg.keyCode = 0;
 
     {
@@ -159,8 +186,6 @@ void DisplayScreenFrame::OnRightDClick(wxMouseEvent& e)
 
 void DisplayScreenFrame::OnKeyDown(wxKeyEvent& e)
 {
-    std::cout << 1;
-
     msg msg;
     msg.type = 1;
     msg.flag = 0;

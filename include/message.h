@@ -10,6 +10,7 @@ struct msg
 	int type;
 	int flag;
 	int x, y;
+	int data;
 	uint16_t keyCode;
 };
 

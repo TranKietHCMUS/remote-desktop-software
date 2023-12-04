@@ -15,7 +15,7 @@ class ScreenSocketThreadCallback
 class ScreenSocketThread : public wxThread
 {
     public:
-        ScreenSocketThread(ScreenSocketThreadCallback *callback, wxImage &screenImage, wxCriticalSection &sIcs);
+        ScreenSocketThread(ScreenSocketThreadCallback *callback, wxString &ip, wxImage &screenImage, wxCriticalSection &sIcs);
         virtual ~ScreenSocketThread();
 
     protected:
@@ -23,6 +23,7 @@ class ScreenSocketThread : public wxThread
 
     private:
         ScreenSocketThreadCallback *callback;
+        wxString &ip;
         wxImage &screenImage;
         wxCriticalSection &sIcs;
 };

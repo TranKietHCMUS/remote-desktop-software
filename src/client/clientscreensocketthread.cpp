@@ -1,7 +1,7 @@
 #include <clientscreensocketthread.h>
 
-ScreenSocketThread::ScreenSocketThread(ScreenSocketThreadCallback *callback, wxImage &screenImage, wxCriticalSection &sIcs)
-    : callback(callback), screenImage(screenImage), sIcs(sIcs) {}
+ScreenSocketThread::ScreenSocketThread(ScreenSocketThreadCallback *callback, wxString &ip, wxImage &screenImage, wxCriticalSection &sIcs)
+    : callback(callback), ip(ip), screenImage(screenImage), sIcs(sIcs) {}
 ScreenSocketThread::~ScreenSocketThread()
 {
     callback->OnScreenSocketThreadDestruction();
@@ -19,7 +19,7 @@ wxThread::ExitCode ScreenSocketThread::Entry()
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(16165);                 
-    serverAddress.sin_addr.s_addr = inet_addr("192.168.152.129");
+    serverAddress.sin_addr.s_addr = inet_addr(ip.mb_str());
 
     if (connect(clientSocket, reinterpret_cast<sockaddr *>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR)
     {
