@@ -13,7 +13,6 @@ wxThread::ExitCode ScreenSocketThread::Entry()
     if (clientSocket == INVALID_SOCKET)
     {
         std::cerr << "Failed to create socket." << "\n";
-        WSACleanup();
         return nullptr;
     }
 
@@ -26,7 +25,6 @@ wxThread::ExitCode ScreenSocketThread::Entry()
     {
         std::cerr << "Failed to connect to server." << "\n";
         closesocket(clientSocket);
-        WSACleanup();
         return nullptr;
     }
 
@@ -41,7 +39,6 @@ wxThread::ExitCode ScreenSocketThread::Entry()
             {
                 std::cerr << "Failed to receive image." << "\n";
                 closesocket(clientSocket);
-                WSACleanup();
                 return nullptr;
             }
             totalReceived += received;
@@ -69,6 +66,5 @@ wxThread::ExitCode ScreenSocketThread::Entry()
     }
 
     closesocket(clientSocket);
-    WSACleanup();
     return nullptr;
 }

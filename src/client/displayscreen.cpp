@@ -13,6 +13,9 @@ DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos
     Bind(wxEVT_LEFT_DOWN, &DisplayScreenFrame::OnLeftDown, this);
     Bind(wxEVT_LEFT_UP, &DisplayScreenFrame::OnLeftUp, this);
     Bind(wxEVT_LEFT_DCLICK, &DisplayScreenFrame::OnLeftDClick, this);
+    Bind(wxEVT_RIGHT_DOWN, &DisplayScreenFrame::OnRightDown, this);
+    Bind(wxEVT_RIGHT_UP, &DisplayScreenFrame::OnRightUp, this);
+    Bind(wxEVT_RIGHT_DCLICK, &DisplayScreenFrame::OnRightDClick, this);
     Bind(wxEVT_KEY_DOWN, &DisplayScreenFrame::OnKeyDown, this);
     Bind(wxEVT_KEY_UP, &DisplayScreenFrame::OnKeyUp, this);
 
@@ -88,6 +91,60 @@ void DisplayScreenFrame::OnLeftDClick(wxMouseEvent& e)
     msg msg;
     msg.type = 0;
     msg.flag = 3;
+    msg.x = p.x;
+    msg.y = p.y; 
+    msg.keyCode = 0;
+
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+    
+    e.Skip();
+}
+
+void DisplayScreenFrame::OnRightDown(wxMouseEvent& e)
+{
+    wxPoint p = e.GetPosition();
+    msg msg;
+    msg.type = 0;
+    msg.flag = 4;
+    msg.x = p.x;
+    msg.y = p.y; 
+    msg.keyCode = 0;
+
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+    
+    e.Skip();
+}
+
+void DisplayScreenFrame::OnRightUp(wxMouseEvent& e)
+{
+    wxPoint p = e.GetPosition();
+    msg msg;
+    msg.type = 0;
+    msg.flag = 5;
+    msg.x = p.x;
+    msg.y = p.y; 
+    msg.keyCode = 0;
+
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+    
+    e.Skip();
+}
+
+void DisplayScreenFrame::OnRightDClick(wxMouseEvent& e)
+{
+    wxPoint p = e.GetPosition();
+    msg msg;
+    msg.type = 0;
+    msg.flag = 6;
     msg.x = p.x;
     msg.y = p.y; 
     msg.keyCode = 0;

@@ -89,5 +89,6 @@ void MyClientFrame::OnDisplayButton(wxCommandEvent &e)
 
 void MyClientFrame::OnClose(wxCloseEvent& e)
 {
+    WSACleanup();
     Destroy();
 }

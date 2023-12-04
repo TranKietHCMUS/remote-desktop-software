@@ -27,10 +27,6 @@ MyServerFrame::MyServerFrame(const wxString &title, const wxPoint &pos, const wx
     Bind(wxEVT_TIMER, &MyServerFrame::OnCapturingTimer, this, wxID_TIMER);
     capturingTimer->Start(16);
 
-    eventTimer = new wxTimer(this, wxID_TIMER_EVENT);
-    Bind(wxEVT_TIMER, &MyServerFrame::OnEventTimer, this, wxID_TIMER_EVENT);
-    eventTimer->Start(5);
-
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
         std::cerr << "Failed to initialize Winsock." << "\n";
 
@@ -55,6 +51,11 @@ void MyServerFrame::OnScreenSocketThreadDestruction()
 void MyServerFrame::OnEventSocketThreadDestruction()
 {
     eventSocketThread = nullptr;
+}
+
+void MyServerFrame::OnEventThreadDestruction()
+{
+    eventThread = nullptr;
 }
 
 void MyServerFrame::OnClickAllowButton(wxCommandEvent &e)
@@ -82,6 +83,17 @@ void MyServerFrame::OnClickAllowButton(wxCommandEvent &e)
     {
         logBox->AppendText(wxT("Created EventThread!\n"));
     }
+
+    eventThread = new EventThread(this, msgQueue, mQcs);
+    if (eventThread->Run() != wxTHREAD_NO_ERROR)
+    {
+        logBox->AppendText(wxT("Failed to create EThread!\n"));
+        delete eventThread;
+    }
+    else
+    {
+        logBox->AppendText(wxT("Created EThread!\n"));
+    }
 }
 
 void MyServerFrame::OnCapturingTimer(wxTimerEvent &e)
@@ -98,53 +110,12 @@ void MyServerFrame::OnCapturingTimer(wxTimerEvent &e)
 
     wxCriticalSectionLocker lock(cIcs);
     capturedImage = bitmap.ConvertToImage();
-    capturedImage = capturedImage.Rescale(1280, 720, wxIMAGE_QUALITY_HIGH);
-}
-
-void MyServerFrame::OnEventTimer(wxTimerEvent& e)
-{
-    msg msg;
-
-    {
-        wxCriticalSectionLocker lock(mQcs);
-        if (msgQueue.empty()) return;
-        msg = msgQueue.front();
-        msgQueue.pop();
-    }
-
-    if (msg.type)
-    {
-        if (!msg.flag) 
-            keybd_event(msg.keyCode, 0, KEYEVENTF_EXTENDEDKEY, 0);
-        else 
-            keybd_event(msg.keyCode, 0, KEYEVENTF_KEYUP, 0);
-    }
-    else
-    {
-        switch(msg.flag)
-        {
-            case 0:
-                SetCursorPos(msg.x, msg.y);
-                break;
-            case 1:
-                SetCursorPos(msg.x, msg. y);
-                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-                break;
-            case 2:
-                SetCursorPos(msg.x, msg. y);
-                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-                break;
-            case 3:
-                SetCursorPos(msg.x, msg. y);
-                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-                break;
-        }
-    }
+    //capturedImage = capturedImage.Rescale(1280, 720, wxIMAGE_QUALITY_HIGH);
 }
 
 void MyServerFrame::OnClose(wxCloseEvent &e)
 {
     capturingTimer->Stop();
-    eventTimer->Stop();
+    WSACleanup();
     Destroy();
 }

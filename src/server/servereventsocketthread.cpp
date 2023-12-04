@@ -13,7 +13,6 @@ wxThread::ExitCode EventSocketThread::Entry()
     if (serverSocket == INVALID_SOCKET)
     {
         std::cerr << "Failed to create socket." << "\n";
-        WSACleanup();
         return nullptr;
     }
 
@@ -26,7 +25,6 @@ wxThread::ExitCode EventSocketThread::Entry()
     {
         std::cerr << "Failed to bind socket." << "\n";
         closesocket(serverSocket);
-        WSACleanup();
         return nullptr;
     }
 
@@ -37,7 +35,6 @@ wxThread::ExitCode EventSocketThread::Entry()
     {
         std::cerr << "Failed to accept client connection." << "\n";
         closesocket(serverSocket);
-        WSACleanup();
         return nullptr;
     }
 
@@ -54,7 +51,6 @@ wxThread::ExitCode EventSocketThread::Entry()
             {
                 std::cerr << "Failed to receive event." << "\n";
                 closesocket(clientSocket);
-                WSACleanup();
                 return nullptr;
             }
             totalReceived += received;
@@ -71,6 +67,5 @@ wxThread::ExitCode EventSocketThread::Entry()
     }
 
     closesocket(clientSocket);
-    WSACleanup();
     return nullptr;
 }

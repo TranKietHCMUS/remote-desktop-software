@@ -13,7 +13,6 @@ wxThread::ExitCode EventSocketThread::Entry()
     if (clientSocket == INVALID_SOCKET)
     {
         std::cerr << "Failed to create socket." << "\n";
-        WSACleanup();
         return nullptr;
     }
 
@@ -26,7 +25,6 @@ wxThread::ExitCode EventSocketThread::Entry()
     {
         std::cerr << "Failed to connect to server." << "\n";
         closesocket(clientSocket);
-        WSACleanup();
         return nullptr;
     }
 
@@ -50,14 +48,12 @@ wxThread::ExitCode EventSocketThread::Entry()
         {
             std::cerr << "Failed to send event." << "\n";
             closesocket(clientSocket);
-            WSACleanup();
             delete[] msgData;
             return nullptr;
         }
     }
 
     closesocket(clientSocket);
-    WSACleanup();
 
     return nullptr;
 }

@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include <servereventsocketthread.h>
 #include <serverscreensocketthread.h>
+#include <eventthread.h>
 #include <winsock2.h>
 
 class MyServerApp : public wxApp
@@ -16,10 +17,9 @@ enum
 {
     wxID_BUTTON,
     wxID_TIMER = wxID_HIGHEST,
-    wxID_TIMER_EVENT,
 };
 
-class MyServerFrame : public wxFrame, public ScreenSocketThreadCallback, public EventSocketThreadCallback
+class MyServerFrame : public wxFrame, public ScreenSocketThreadCallback, public EventSocketThreadCallback, public EventThreadCallback
 {
     public:
         MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
@@ -38,19 +38,18 @@ class MyServerFrame : public wxFrame, public ScreenSocketThreadCallback, public 
         std::queue<msg> msgQueue;
         wxCriticalSection mQcs;
 
-        wxTimer *eventTimer;
-
         WSADATA wsaData;
 
         ScreenSocketThread *screenSocketThread;
         EventSocketThread *eventSocketThread;
+        EventThread *eventThread;
 
         void OnScreenSocketThreadDestruction() override;
         void OnEventSocketThreadDestruction() override;
+        void OnEventThreadDestruction() override;
         
         void OnClickAllowButton(wxCommandEvent &e);
         void OnCapturingTimer(wxTimerEvent &e);
-        void OnEventTimer(wxTimerEvent& e);
         void LayoutServerScreen();
         void OnClose(wxCloseEvent &e);
 };
