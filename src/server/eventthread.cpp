@@ -23,9 +23,9 @@ wxThread::ExitCode EventThread::Entry()
         if (msg.type)
         {
             if (!msg.flag) 
-                keybd_event(msg.keyCode, 0, KEYEVENTF_EXTENDEDKEY, 0);
+                keybd_event(msg.keyCode, 0, 0, 0);
             else 
-                keybd_event(msg.keyCode, 0, KEYEVENTF_KEYUP, 0);
+                keybd_event(msg.keyCode, 0, 2, 0);
         }
         else
         {

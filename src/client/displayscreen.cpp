@@ -159,6 +159,8 @@ void DisplayScreenFrame::OnRightDClick(wxMouseEvent& e)
 
 void DisplayScreenFrame::OnKeyDown(wxKeyEvent& e)
 {
+    std::cout << 1;
+
     msg msg;
     msg.type = 1;
     msg.flag = 0;
