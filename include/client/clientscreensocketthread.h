@@ -3,8 +3,11 @@
 
 #include <wx/wx.h>
 #include <winsock2.h>
+#include <chrono>
 
 #define SIZE 2764800
+
+wxDECLARE_EVENT(wxEVT_SCREENSOCKETTHREAD_COMPLETED, wxThreadEvent);
 
 class ScreenSocketThreadCallback
 {
@@ -15,7 +18,7 @@ class ScreenSocketThreadCallback
 class ScreenSocketThread : public wxThread
 {
     public:
-        ScreenSocketThread(ScreenSocketThreadCallback *callback, wxString &ip, wxImage &screenImage, wxCriticalSection &sIcs);
+        ScreenSocketThread(ScreenSocketThreadCallback *callback, wxEvtHandler *evtHandler, wxString &ip, wxBitmap &bitmap, wxCriticalSection &bcs);
         virtual ~ScreenSocketThread();
 
     protected:
@@ -23,9 +26,10 @@ class ScreenSocketThread : public wxThread
 
     private:
         ScreenSocketThreadCallback *callback;
+        wxEvtHandler *evtHandler;
         wxString &ip;
-        wxImage &screenImage;
-        wxCriticalSection &sIcs;
+        wxBitmap &bitmap;
+        wxCriticalSection &bcs;
 };
 
 #endif

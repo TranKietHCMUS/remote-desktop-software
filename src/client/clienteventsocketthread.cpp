@@ -30,6 +30,12 @@ wxThread::ExitCode EventSocketThread::Entry()
 
     while (true)
     {
+        if (wxThread::This()->TestDestroy())
+        {
+            closesocket(clientSocket);
+            return nullptr;
+        }
+        
         msg msg;
         {
             wxCriticalSectionLocker lock(mQcs);

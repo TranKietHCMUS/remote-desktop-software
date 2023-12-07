@@ -3,6 +3,8 @@
 
 #include <wx/wx.h>
 #include <winsock2.h>
+#include <windows.h>
+#include <chrono>
 
 #define SIZE 2764800
 

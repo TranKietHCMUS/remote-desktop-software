@@ -41,13 +41,13 @@ wxThread::ExitCode EventSocketThread::Entry()
     closesocket(serverSocket);
 
     while (true)
-    {
+    {        
         unsigned char* data = new unsigned char[22];
         size_t totalReceived = 0;
         while (totalReceived < 22)
         {
             int received = recv(clientSocket, (char*)data + totalReceived, 22 - totalReceived, 0);
-            if (received == SOCKET_ERROR)
+            if (received <= 0)
             {
                 std::cerr << "Failed to receive event." << "\n";
                 closesocket(clientSocket);

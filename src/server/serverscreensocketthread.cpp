@@ -43,8 +43,9 @@ wxThread::ExitCode ScreenSocketThread::Entry()
     while (true)
     {
         unsigned char* imageData = new unsigned char[SIZE];
-        {
-            wxCriticalSectionLocker lock(cIcs);    
+
+        {   
+            wxCriticalSectionLocker lock(cIcs);
             for (int y = 0; y < 720; ++y)
             {
                 for (int x = 0; x < 1280; ++x) {

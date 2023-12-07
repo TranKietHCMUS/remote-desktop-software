@@ -12,7 +12,7 @@ bool MyServerApp::OnInit()
 
 MyServerFrame::MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long style)
     : wxFrame(NULL, wxID_ANY, title, pos, size, style), capturedImage(1600, 900)
-{
+{   
     panel = new wxPanel(this, wxID_ANY);
 
     allowButton = new wxButton(panel, wxID_BUTTON, wxT("Allow Connection"), wxPoint(10, 10));
@@ -26,12 +26,13 @@ MyServerFrame::MyServerFrame(const wxString &title, const wxPoint &pos, const wx
     capturingTimer = new wxTimer(this, wxID_TIMER);
     Bind(wxEVT_TIMER, &MyServerFrame::OnCapturingTimer, this, wxID_TIMER);
     capturingTimer->Start(16);
+    
+    eventThread = new EventThread(this, msgQueue, mQcs);
+    if (eventThread->Run() != wxTHREAD_NO_ERROR)
+        delete eventThread;
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
         std::cerr << "Failed to initialize Winsock." << "\n";
-
-    quitScreen = false;
-    quitEvent = false;
 
     Bind(wxEVT_CLOSE_WINDOW, &MyServerFrame::OnClose, this);
 }
@@ -48,17 +49,11 @@ void MyServerFrame::LayoutServerScreen()
 
 void MyServerFrame::OnScreenSocketThreadDestruction()
 {
-    quitScreen = true;
-    if (quitScreen && quitEvent)
-        allowButton->Enable();
     screenSocketThread = nullptr;
 }
 
 void MyServerFrame::OnEventSocketThreadDestruction()
 {
-    quitEvent = true;
-    if (quitScreen && quitEvent)
-        allowButton->Enable();
     eventSocketThread = nullptr;
 }
 
@@ -69,7 +64,7 @@ void MyServerFrame::OnEventThreadDestruction()
 
 void MyServerFrame::OnClickAllowButton(wxCommandEvent &e)
 {
-    allowButton->Disable();
+    //allowButton->Disable();
 
     screenSocketThread = new ScreenSocketThread(this, capturedImage, cIcs);
     if (screenSocketThread->Run() != wxTHREAD_NO_ERROR)
@@ -78,10 +73,6 @@ void MyServerFrame::OnClickAllowButton(wxCommandEvent &e)
     eventSocketThread = new EventSocketThread(this, msgQueue, mQcs);
     if (eventSocketThread->Run() != wxTHREAD_NO_ERROR)
         delete eventSocketThread;
-
-    eventThread = new EventThread(this, msgQueue, mQcs);
-    if (eventThread->Run() != wxTHREAD_NO_ERROR)
-        delete eventThread;
 }
 
 void MyServerFrame::OnCapturingTimer(wxTimerEvent &e)
@@ -98,6 +89,7 @@ void MyServerFrame::OnCapturingTimer(wxTimerEvent &e)
 
     wxCriticalSectionLocker lock(cIcs);
     capturedImage = bitmap.ConvertToImage();
+    //capturedImage.InitAlpha();
     //capturedImage = capturedImage.Rescale(1280, 720, wxIMAGE_QUALITY_HIGH);
 }
 

@@ -5,6 +5,7 @@
 #include <clienteventsocketthread.h>
 #include <clientscreensocketthread.h>
 #include <displayscreen.h>
+#include <winsock2.h>
 
 class MyClientApp : public wxApp
 {
@@ -14,8 +15,12 @@ class MyClientApp : public wxApp
 
 enum
 {
-    wxID_CONNECT_BUTTON,
+    wxID_TEXT_OPEN,
+    wxID_TEXT_NOTE,
+    wxID_DISCONNECT_BUTTON,
     wxID_DISPLAY_BUTTON,
+    wxID_TEXT_INPUT,
+    wxID_TEXT_LOG,
 };
 
 class MyClientFrame : public wxFrame, public ScreenSocketThreadCallback, public EventSocketThreadCallback
@@ -26,15 +31,18 @@ class MyClientFrame : public wxFrame, public ScreenSocketThreadCallback, public 
 
     private:
         wxPanel *panel;
-        wxButton *connectButton;
+        wxStaticText *openText;
+        wxStaticText *note;
+        wxButton *disconnectButton;
         wxButton *displayButton;
         wxTextCtrl *inputBox;
         wxTextCtrl *logBox;
+        wxBoxSizer *sizer;
 
         wxString ip;
 
-        wxImage screenImage;
-        wxCriticalSection sIcs;
+        wxBitmap bitmap;
+        wxCriticalSection bcs;
 
         std::queue<msg> msgQueue;
         wxCriticalSection mQcs;
@@ -44,19 +52,18 @@ class MyClientFrame : public wxFrame, public ScreenSocketThreadCallback, public 
         ScreenSocketThread *screenSocketThread;
         EventSocketThread *eventSocketThread;
 
-        DisplayScreenFrame *displayScreenWindow;
+        wxCriticalSection threadCs;
 
-        bool quitScreen;
-        bool quitEvent;
+        DisplayScreenFrame *displayScreenWindow;
 
         void OnScreenSocketThreadDestruction() override;
         void OnEventSocketThreadDestruction() override;
 
-        void LayoutClientScreen();
-        void OnConnectButton(wxCommandEvent &e);
-        void OnDisplayButton(wxCommandEvent &e);
         void OnTextEnter(wxCommandEvent &e);
-        void OnScreenClose(wxCloseEvent &e);
+        void OnScreenThreadCompletion(wxThreadEvent &e);
+        void OnDisplayButton(wxCommandEvent &e);
+        void OnDisconnectButton(wxCommandEvent &e);
+        //void OnScreenClose(wxCloseEvent &e);
         void OnClose(wxCloseEvent &e);
 };
 

@@ -13,11 +13,13 @@ enum
 class DisplayScreenFrame : public wxFrame
 {
     public:
-        DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxImage &screenImage, wxCriticalSection &sIcs, std::queue<msg> &msgQueue, wxCriticalSection &mQcs, long style = wxDEFAULT_FRAME_STYLE | wxFULL_REPAINT_ON_RESIZE);
+        DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxBitmap &bitmap, wxCriticalSection &bcs, std::queue<msg> &msgQueue, wxCriticalSection &mQcs, long style = wxICONIZE | wxCAPTION | wxFRAME_NO_TASKBAR | wxFULL_REPAINT_ON_RESIZE);
         virtual ~DisplayScreenFrame();
+
+        void OnClose();
     private:
-        wxImage &screenImage;
-        wxCriticalSection &sIcs;
+        wxBitmap &bitmap;
+        wxCriticalSection &bcs;
         wxTimer *refreshTimer;
 
         std::queue<msg> &msgQueue;
@@ -36,8 +38,7 @@ class DisplayScreenFrame : public wxFrame
         void OnMouseWheel(wxMouseEvent& e);
         void OnKeyDown(wxKeyEvent& e);
         void OnKeyUp(wxKeyEvent& e);
-
-        void OnClose(wxCloseEvent &e);
+        
 };
 
 #endif

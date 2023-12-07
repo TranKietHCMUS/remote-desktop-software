@@ -1,7 +1,7 @@
 #include <displayscreen.h>
 
-DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxImage &screenImage, wxCriticalSection &sIcs, std::queue<msg> &msgQueue, wxCriticalSection &mQcs, long style)
-    : wxFrame(NULL, wxID_ANY, title, pos, size, style), screenImage(screenImage), sIcs(sIcs), msgQueue(msgQueue), mQcs(mQcs)
+DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxBitmap &bitmap, wxCriticalSection &bcs, std::queue<msg> &msgQueue, wxCriticalSection &mQcs, long style)
+    : wxFrame(NULL, wxID_ANY, title, pos, size, style), bitmap(bitmap), bcs(bcs), msgQueue(msgQueue), mQcs(mQcs)
 { 
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -21,8 +21,6 @@ DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos
     Bind(wxEVT_KEY_UP, &DisplayScreenFrame::OnKeyUp, this);
 
     Bind(wxEVT_PAINT, &DisplayScreenFrame::OnPaint, this);
-
-    Bind(wxEVT_CLOSE_WINDOW, &DisplayScreenFrame::OnClose, this);
 }
 
 DisplayScreenFrame::~DisplayScreenFrame(){}
@@ -94,7 +92,7 @@ void DisplayScreenFrame::OnLeftDClick(wxMouseEvent& e)
     wxPoint p = e.GetPosition();
     msg msg;
     msg.type = 0;
-    msg.flag = 3;
+    msg.flag = 1;
     msg.x = p.x;
     msg.y = p.y; 
     msg.data = 0;
@@ -113,7 +111,7 @@ void DisplayScreenFrame::OnRightDown(wxMouseEvent& e)
     wxPoint p = e.GetPosition();
     msg msg;
     msg.type = 0;
-    msg.flag = 4;
+    msg.flag = 3;
     msg.x = p.x;
     msg.y = p.y; 
     msg.data = 0;
@@ -132,7 +130,7 @@ void DisplayScreenFrame::OnRightUp(wxMouseEvent& e)
     wxPoint p = e.GetPosition();
     msg msg;
     msg.type = 0;
-    msg.flag = 5;
+    msg.flag = 4;
     msg.x = p.x;
     msg.y = p.y; 
     msg.data = 0;
@@ -151,7 +149,7 @@ void DisplayScreenFrame::OnRightDClick(wxMouseEvent& e)
     wxPoint p = e.GetPosition();
     msg msg;
     msg.type = 0;
-    msg.flag = 6;
+    msg.flag = 3;
     msg.x = p.x;
     msg.y = p.y; 
     msg.data = 0;
@@ -170,7 +168,7 @@ void DisplayScreenFrame::OnMouseWheel(wxMouseEvent& e)
     wxPoint p = e.GetPosition();
     msg msg;
     msg.type = 0;
-    msg.flag = 7;
+    msg.flag = 5;
     msg.x = p.x;
     msg.y = p.y;
     msg.data = e.GetWheelRotation(); 
@@ -221,11 +219,11 @@ void DisplayScreenFrame::OnKeyUp(wxKeyEvent& e)
 void DisplayScreenFrame::OnPaint(wxPaintEvent &e)
 {
     wxPaintDC dc(this);
-    wxCriticalSectionLocker lock(sIcs);
-    dc.DrawBitmap(wxBitmap(screenImage), 0, 0);
+    wxCriticalSectionLocker lock(bcs);
+    dc.DrawBitmap(bitmap, 0, 0);
 }
 
-void DisplayScreenFrame::OnClose(wxCloseEvent &e)
+void DisplayScreenFrame::OnClose()
 {
     refreshTimer->Stop();
     Destroy();

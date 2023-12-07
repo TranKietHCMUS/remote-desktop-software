@@ -1,7 +1,9 @@
 #include <clientscreensocketthread.h>
 
-ScreenSocketThread::ScreenSocketThread(ScreenSocketThreadCallback *callback, wxString &ip, wxImage &screenImage, wxCriticalSection &sIcs)
-    : callback(callback), ip(ip), screenImage(screenImage), sIcs(sIcs) {}
+wxDEFINE_EVENT(wxEVT_SCREENSOCKETTHREAD_COMPLETED, wxThreadEvent);
+
+ScreenSocketThread::ScreenSocketThread(ScreenSocketThreadCallback *callback, wxEvtHandler *evtHandler, wxString &ip, wxBitmap &bitmap, wxCriticalSection &bcs)
+    : callback(callback), evtHandler(evtHandler), ip(ip), bitmap(bitmap), bcs(bcs) {}
 ScreenSocketThread::~ScreenSocketThread()
 {
     callback->OnScreenSocketThreadDestruction();
@@ -12,7 +14,9 @@ wxThread::ExitCode ScreenSocketThread::Entry()
     SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket == INVALID_SOCKET)
     {
-        std::cerr << "Failed to create socket." << "\n";
+        wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSOCKETTHREAD_COMPLETED);
+        e->SetString(wxT("Failed to create socket\n"));
+        wxQueueEvent(evtHandler, e);
         return nullptr;
     }
 
@@ -23,21 +27,31 @@ wxThread::ExitCode ScreenSocketThread::Entry()
 
     if (connect(clientSocket, reinterpret_cast<sockaddr *>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR)
     {
-        std::cerr << "Failed to connect to server." << "\n";
+        wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSOCKETTHREAD_COMPLETED);
+        e->SetString(wxT("Failed to connect to server\n"));
+        wxQueueEvent(evtHandler, e);
         closesocket(clientSocket);
         return nullptr;
     }
 
     while (true)
     {
+        if (wxThread::This()->TestDestroy())
+        {
+            break;
+        }
+        
         unsigned char* imageData = new unsigned char[SIZE];
         size_t totalReceived = 0;
+
         while (totalReceived < SIZE)
         {
             int received = recv(clientSocket, (char*)imageData + totalReceived, SIZE - totalReceived, 0);
-            if (received == SOCKET_ERROR)
+            if (received <= 0)
             {
-                std::cerr << "Failed to receive image." << "\n";
+                wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSOCKETTHREAD_COMPLETED);
+                e->SetString(wxT("Failed to receive image\n"));
+                wxQueueEvent(evtHandler, e);
                 closesocket(clientSocket);
                 return nullptr;
             }
@@ -56,15 +70,19 @@ wxThread::ExitCode ScreenSocketThread::Entry()
                 image.SetRGB(x, y, red, green, blue);
             }
         }
-        
-        delete[] imageData;
-        
+
+        wxBitmap tmpBitmap(image);
         {
-            wxCriticalSectionLocker lock(sIcs);
-            screenImage = image;
+            wxCriticalSectionLocker lock(bcs);
+            bitmap = tmpBitmap;
         }
+
+        delete[] imageData;
     }
 
+    wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSOCKETTHREAD_COMPLETED);
+    e->SetString(wxT("Disconnect\n"));
+    wxQueueEvent(evtHandler, e);
     closesocket(clientSocket);
     return nullptr;
 }

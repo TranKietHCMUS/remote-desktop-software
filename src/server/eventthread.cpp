@@ -39,19 +39,14 @@ wxThread::ExitCode EventThread::Entry()
                     mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
                     break;
                 case 3:
-                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                    mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
                     break;
                 case 4:
-                    mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-                    break;
-                case 5:
                     mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
                     break;
-                case 6:
-                    mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-                    break;
-                case 7:
+                case 5:
                     mouse_event(MOUSEEVENTF_WHEEL, 0, 0, msg.data, 0);
+                    break;
             }
         }
     }
