@@ -105,6 +105,8 @@
 				"wxmsw32u_core",
 				"-l",
 				"wxbase32u",
+				"-l",	
+				"wxbase32u_net",
 				"-lws2_32",
 				"-mwindows"
 			],
@@ -144,6 +146,8 @@
 				"wxmsw32u_core",
 				"-l",
 				"wxbase32u",
+				"-l",	
+				"wxbase32u_net",
 				"-lws2_32",
 				"-mwindows"
 			],
