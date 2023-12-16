@@ -1,46 +1,61 @@
-#include <displayscreen.h>
+#include <client/displayscreen.h>
 
-DisplayScreenFrame::DisplayScreenFrame(const wxString &title, const wxPoint &pos, const wxSize &size, wxBitmap &bitmap, wxCriticalSection &bcs, std::queue<msg> &msgQueue, wxCriticalSection &mQcs, long style)
-    : wxFrame(NULL, wxID_ANY, title, pos, size, style), bitmap(bitmap), bcs(bcs), msgQueue(msgQueue), mQcs(mQcs)
-{ 
+DisplayWindow::DisplayWindow(wxWindow *parent, std::queue<msg> &msgQueue, wxCriticalSection &mQcs)
+                            : wxScrolled<wxWindow>(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE | wxVSCROLL | wxHSCROLL | wxWANTS_CHARS), bitmap(1920, 1080), msgQueue(msgQueue), mQcs(mQcs)
+{
+    drawPointX = 0;
+    drawPointY = 0;
+    
     SetBackgroundStyle(wxBG_STYLE_PAINT);
+    SetBackgroundColour(wxColor(255, 255, 255));
+    SetScrollRate(5, 5);
+    SetVirtualSize(bitmap.GetWidth(), bitmap.GetHeight());
 
-    refreshTimer = new wxTimer(this, wxID_REFRESH_TIMER);
-    Bind(wxEVT_TIMER, &DisplayScreenFrame::OnRefreshTimer, this, wxID_REFRESH_TIMER);
-    refreshTimer->Start(16);
-
-    Bind(wxEVT_MOTION, &DisplayScreenFrame::OnMotion, this);
-    Bind(wxEVT_LEFT_DOWN, &DisplayScreenFrame::OnLeftDown, this);
-    Bind(wxEVT_LEFT_UP, &DisplayScreenFrame::OnLeftUp, this);
-    Bind(wxEVT_LEFT_DCLICK, &DisplayScreenFrame::OnLeftDClick, this);
-    Bind(wxEVT_RIGHT_DOWN, &DisplayScreenFrame::OnRightDown, this);
-    Bind(wxEVT_RIGHT_UP, &DisplayScreenFrame::OnRightUp, this);
-    Bind(wxEVT_RIGHT_DCLICK, &DisplayScreenFrame::OnRightDClick, this);
-    Bind(wxEVT_MOUSEWHEEL, &DisplayScreenFrame::OnMouseWheel, this);
-    Bind(wxEVT_KEY_DOWN, &DisplayScreenFrame::OnKeyDown, this);
-    Bind(wxEVT_KEY_UP, &DisplayScreenFrame::OnKeyUp, this);
-
-    Bind(wxEVT_PAINT, &DisplayScreenFrame::OnPaint, this);
+    Bind(wxEVT_PAINT, &DisplayWindow::OnPaint, this);
+    Bind(wxEVT_MOTION, &DisplayWindow::OnMotion, this);
+    Bind(wxEVT_LEFT_DOWN, &DisplayWindow::OnLeftDown, this);
+    Bind(wxEVT_LEFT_UP, &DisplayWindow::OnLeftUp, this);
+    Bind(wxEVT_LEFT_DCLICK, &DisplayWindow::OnLeftDown, this);
+    Bind(wxEVT_RIGHT_DOWN, &DisplayWindow::OnRightDown, this);
+    Bind(wxEVT_RIGHT_UP, &DisplayWindow::OnRightUp, this);
+    Bind(wxEVT_RIGHT_DCLICK, &DisplayWindow::OnRightDown, this);
+    Bind(wxEVT_MOUSEWHEEL, &DisplayWindow::OnMouseWheel, this);
+    Bind(wxEVT_KEY_DOWN, &DisplayWindow::OnKeyDown, this);
+    Bind(wxEVT_KEY_UP, &DisplayWindow::OnKeyUp, this);
 }
 
-DisplayScreenFrame::~DisplayScreenFrame(){}
-
-void DisplayScreenFrame::OnRefreshTimer(wxTimerEvent &e)
+void DisplayWindow::SetBitmap(wxBitmap &bitmap)
 {
+    this->bitmap = bitmap;
+    
+    SetVirtualSize(bitmap.GetWidth(), bitmap.GetHeight());
+
     Refresh();
 }
 
-void DisplayScreenFrame::OnMotion(wxMouseEvent& e)
+void DisplayWindow::OnPaint(wxPaintEvent &e)
 {
-    wxPoint p = e.GetPosition();
-    msg msg;
-    msg.type = 0;
-    msg.flag = 0;
-    msg.x = p.x;
-    msg.y = p.y;
-    msg.data = 0; 
-    msg.keyCode = 0;
+    wxAutoBufferedPaintDC dc(this);
+    dc.Clear();
 
+    DoPrepareDC(dc);
+
+    wxGraphicsContext *gc = wxGraphicsContext::Create(dc);
+
+    wxSize size = GetClientSize();
+    drawPointX = size.GetWidth() > bitmap.GetWidth() ? (size.GetWidth() - bitmap.GetWidth()) / 2 : 0;
+    drawPointY = size.GetHeight() > bitmap.GetHeight() ? (size.GetHeight() - bitmap.GetHeight()) / 2 : 0;
+
+    gc->DrawBitmap(bitmap, drawPointX, drawPointY, bitmap.GetWidth(), bitmap.GetHeight());
+    delete gc;
+}
+
+void DisplayWindow::OnMotion(wxMouseEvent &e)
+{
+    wxPoint scrollPos = e.GetPosition();
+    wxPoint pos = CalcUnscrolledPosition(scrollPos);
+    msg msg(0, 0, 0, pos.x - drawPointX, pos.y - drawPointY);
+    if (msg.x < 0 || msg.y < 0) return;
     {
         wxCriticalSectionLocker lock(mQcs);
         msgQueue.push(msg);
@@ -49,148 +64,12 @@ void DisplayScreenFrame::OnMotion(wxMouseEvent& e)
     e.Skip();
 }
 
-void DisplayScreenFrame::OnLeftDown(wxMouseEvent& e)
+void DisplayWindow::OnLeftDown(wxMouseEvent &e)
 {
-    wxPoint p = e.GetPosition();
-    msg msg;
-    msg.type = 0;
-    msg.flag = 1;
-    msg.x = p.x;
-    msg.y = p.y;
-    msg.data = 0; 
-    msg.keyCode = 0;
-
-    {
-        wxCriticalSectionLocker lock(mQcs);
-        msgQueue.push(msg);
-    }
-    
-    e.Skip();
-}
-
-void DisplayScreenFrame::OnLeftUp(wxMouseEvent& e)
-{
-    wxPoint p = e.GetPosition();
-    msg msg;
-    msg.type = 0;
-    msg.flag = 2;
-    msg.x = p.x;
-    msg.y = p.y; 
-    msg.data = 0;
-    msg.keyCode = 0;
-
-    {
-        wxCriticalSectionLocker lock(mQcs);
-        msgQueue.push(msg);
-    }
-    
-    e.Skip();
-}
-
-void DisplayScreenFrame::OnLeftDClick(wxMouseEvent& e)
-{
-    wxPoint p = e.GetPosition();
-    msg msg;
-    msg.type = 0;
-    msg.flag = 1;
-    msg.x = p.x;
-    msg.y = p.y; 
-    msg.data = 0;
-    msg.keyCode = 0;
-
-    {
-        wxCriticalSectionLocker lock(mQcs);
-        msgQueue.push(msg);
-    }
-    
-    e.Skip();
-}
-
-void DisplayScreenFrame::OnRightDown(wxMouseEvent& e)
-{
-    wxPoint p = e.GetPosition();
-    msg msg;
-    msg.type = 0;
-    msg.flag = 3;
-    msg.x = p.x;
-    msg.y = p.y; 
-    msg.data = 0;
-    msg.keyCode = 0;
-
-    {
-        wxCriticalSectionLocker lock(mQcs);
-        msgQueue.push(msg);
-    }
-    
-    e.Skip();
-}
-
-void DisplayScreenFrame::OnRightUp(wxMouseEvent& e)
-{
-    wxPoint p = e.GetPosition();
-    msg msg;
-    msg.type = 0;
-    msg.flag = 4;
-    msg.x = p.x;
-    msg.y = p.y; 
-    msg.data = 0;
-    msg.keyCode = 0;
-
-    {
-        wxCriticalSectionLocker lock(mQcs);
-        msgQueue.push(msg);
-    }
-    
-    e.Skip();
-}
-
-void DisplayScreenFrame::OnRightDClick(wxMouseEvent& e)
-{
-    wxPoint p = e.GetPosition();
-    msg msg;
-    msg.type = 0;
-    msg.flag = 3;
-    msg.x = p.x;
-    msg.y = p.y; 
-    msg.data = 0;
-    msg.keyCode = 0;
-
-    {
-        wxCriticalSectionLocker lock(mQcs);
-        msgQueue.push(msg);
-    }
-    
-    e.Skip();
-}
-
-void DisplayScreenFrame::OnMouseWheel(wxMouseEvent& e)
-{
-    wxPoint p = e.GetPosition();
-    msg msg;
-    msg.type = 0;
-    msg.flag = 5;
-    msg.x = p.x;
-    msg.y = p.y;
-    msg.data = e.GetWheelRotation(); 
-    msg.keyCode = 0;
-
-    {
-        wxCriticalSectionLocker lock(mQcs);
-        msgQueue.push(msg);
-    }
-    
-    e.Skip();
-}
-
-void DisplayScreenFrame::OnKeyDown(wxKeyEvent& e)
-{
-    msg msg;
-    msg.type = 1;
-    msg.flag = 0;
-    msg.x = 0;
-    msg.y = 0;
-    msg.keyCode = e.GetRawKeyCode();
-
+    wxPoint scrollPos = e.GetPosition();
+    wxPoint pos = CalcUnscrolledPosition(scrollPos);
+    msg msg(0, 1, 0, pos.x - drawPointX, pos.y - drawPointY);
+    if (msg.x < 0 || msg.y < 0) return;
     {
         wxCriticalSectionLocker lock(mQcs);
         msgQueue.push(msg);
@@ -199,15 +78,12 @@ void DisplayScreenFrame::OnKeyDown(wxKeyEvent& e)
     e.Skip();
 }
 
-void DisplayScreenFrame::OnKeyUp(wxKeyEvent& e)
+void DisplayWindow::OnLeftUp(wxMouseEvent &e)
 {
-    msg msg;
-    msg.type = 1;
-    msg.flag = 1;
-    msg.x = 0;
-    msg.y = 0;
-    msg.keyCode = e.GetRawKeyCode();
-    
+    wxPoint scrollPos = e.GetPosition();
+    wxPoint pos = CalcUnscrolledPosition(scrollPos);;
+    msg msg(0, 2, 0, pos.x - drawPointX, pos.y - drawPointY);
+    if (msg.x < 0 || msg.y < 0) return;
     {
         wxCriticalSectionLocker lock(mQcs);
         msgQueue.push(msg);
@@ -216,15 +92,66 @@ void DisplayScreenFrame::OnKeyUp(wxKeyEvent& e)
     e.Skip();
 }
 
-void DisplayScreenFrame::OnPaint(wxPaintEvent &e)
+void DisplayWindow::OnRightDown(wxMouseEvent &e)
 {
-    wxPaintDC dc(this);
-    wxCriticalSectionLocker lock(bcs);
-    dc.DrawBitmap(bitmap, 0, 0);
+    wxPoint scrollPos = e.GetPosition();
+    wxPoint pos = CalcUnscrolledPosition(scrollPos);
+    msg msg(0, 3, 0, pos.x - drawPointX, pos.y - drawPointY);
+    if (msg.x < 0 || msg.y < 0) return;
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+
+    e.Skip();
 }
 
-void DisplayScreenFrame::OnClose()
+void DisplayWindow::OnRightUp(wxMouseEvent &e)
 {
-    refreshTimer->Stop();
-    Destroy();
+    wxPoint scrollPos = e.GetPosition();
+    wxPoint pos = CalcUnscrolledPosition(scrollPos);
+    msg msg(0, 4, 0, pos.x - drawPointX, pos.y - drawPointY);
+    if (msg.x < 0 || msg.y < 0) return;
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+
+    e.Skip();
+}
+
+void DisplayWindow::OnMouseWheel(wxMouseEvent &e)
+{
+    wxPoint scrollPos = e.GetPosition();
+    wxPoint pos = CalcUnscrolledPosition(scrollPos);
+    msg msg(0, 5, e.GetWheelRotation(), pos.x - drawPointX, pos.y - drawPointY);
+    if (msg.x < 0 || msg.y < 0) return;
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+}
+
+void DisplayWindow::OnKeyDown(wxKeyEvent& e)
+{
+    msg msg(1, 0, 0, 0, 0, e.GetRawKeyCode());
+
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+
+    if (msg.keyCode != VK_LEFT && msg.keyCode != VK_UP && msg.keyCode != VK_RIGHT && msg.keyCode != VK_DOWN) e.Skip();
+}
+
+void DisplayWindow::OnKeyUp(wxKeyEvent& e)
+{
+    msg msg(1, 1, 0, 0, 0, e.GetRawKeyCode());
+
+    {
+        wxCriticalSectionLocker lock(mQcs);
+        msgQueue.push(msg);
+    }
+
+    if (msg.keyCode != VK_LEFT && msg.keyCode != VK_UP && msg.keyCode != VK_RIGHT && msg.keyCode != VK_DOWN) e.Skip();
 }

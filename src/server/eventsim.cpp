@@ -1,18 +1,20 @@
-#include <eventthread.h>
+#include <server/eventsim.h>
 
-EventThread::EventThread(EventThreadCallback *callback, std::queue<msg> &msgQueue, wxCriticalSection &mQcs)
-    : callback(callback), msgQueue(msgQueue), mQcs(mQcs) {}
-EventThread::~EventThread()
+EventSimThread::~EventSimThread()
 {
-    callback->OnEventThreadDestruction();
+    callback->OnEventSimThreadDestruction();
 }
 
-wxThread::ExitCode EventThread::Entry()
+wxThread::ExitCode EventSimThread::Entry()
 {
     while(true)
     {
-        msg msg;
+        if (TestDestroy())
+        {
+            return nullptr;
+        }
         
+        msg msg;
         {
             wxCriticalSectionLocker lock(mQcs);
             if (msgQueue.empty()) continue;
@@ -20,14 +22,7 @@ wxThread::ExitCode EventThread::Entry()
             msgQueue.pop();
         }
 
-        if (msg.type)
-        {
-            if (!msg.flag) 
-                keybd_event(msg.keyCode, 0, 0, 0);
-            else 
-                keybd_event(msg.keyCode, 0, 2, 0);
-        }
-        else
+        if (!msg.type)
         {
             SetCursorPos(msg.x, msg.y);
             switch(msg.flag)
@@ -49,6 +44,14 @@ wxThread::ExitCode EventThread::Entry()
                     break;
             }
         }
+        else
+        {
+            if (!msg.flag) 
+                keybd_event(msg.keyCode, 0, 0, 0);
+            else 
+                keybd_event(msg.keyCode, 0, 2, 0);
+        }
     }
+
     return nullptr;
 }
