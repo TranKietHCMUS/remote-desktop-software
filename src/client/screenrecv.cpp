@@ -54,10 +54,12 @@ wxThread::ExitCode ScreenRecvThread::Entry()
         }
         
         size_t width;
-        if (recv(clientSocket, reinterpret_cast<char *>(&width), sizeof(width), 0) == SOCKET_ERROR)
+        int receivedWidth = recv(clientSocket, reinterpret_cast<char *>(&width), sizeof(width), 0);
+        if (receivedWidth <= 0)
         {
             wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENRECVTHREAD_COMPLETE);
-            e->SetString(wxT("Error: Failed to receive width of screen image\n"));
+            if (receivedWidth < 0) e->SetString(wxT("Error: Failed to receive width of screen image\n"));
+            else e->SetString(wxT("Disconnect successfully\n"));
             e->SetInt(id);
             wxQueueEvent(evtHandler, e);
             closesocket(clientSocket);
@@ -65,10 +67,12 @@ wxThread::ExitCode ScreenRecvThread::Entry()
         }
 
         size_t height;
-        if (recv(clientSocket, reinterpret_cast<char *>(&height), sizeof(height), 0) == SOCKET_ERROR)
+        int receivedHeight = recv(clientSocket, reinterpret_cast<char *>(&height), sizeof(height), 0);
+        if (receivedHeight <= 0)
         {
             wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENRECVTHREAD_COMPLETE);
-            e->SetString(wxT("Error: Failed to receive height of screen image\n"));
+            if (receivedWidth < 0) e->SetString(wxT("Error: Failed to receive height of screen image\n"));
+            else e->SetString(wxT("Disconnect successfully\n"));
             e->SetInt(id);
             wxQueueEvent(evtHandler, e);
             closesocket(clientSocket);
@@ -85,7 +89,8 @@ wxThread::ExitCode ScreenRecvThread::Entry()
             if (received <= 0)
             {
                 wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENRECVTHREAD_COMPLETE);
-                e->SetString(wxT("Error: Failed to receive screen image\n"));
+                if (received < 0) e->SetString(wxT("Error: Failed to receive screen image\n"));
+                e->SetString(wxT("Disconnect succesfully\n"));
                 e->SetInt(id);
                 wxQueueEvent(evtHandler, e);
                 closesocket(clientSocket);

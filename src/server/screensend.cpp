@@ -77,7 +77,8 @@ wxThread::ExitCode ScreenSendThread::Entry()
         if (send(clientSocket, reinterpret_cast<const char *>(&width), sizeof(width), 0) == SOCKET_ERROR)
         {
             wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSENDTHREAD_COMPLETE);
-            e->SetString(wxT("Error: Failed to send width of screen image\n"));
+            if (WSAGetLastError() == WSAECONNRESET) e->SetString(wxT("Disconnect successfully\n"));
+            else e->SetString(wxT("Error: Failed to send width of screen image\n"));
             wxQueueEvent(evtHandler, e);
             closesocket(clientSocket);
             return nullptr;
@@ -86,7 +87,8 @@ wxThread::ExitCode ScreenSendThread::Entry()
         if (send(clientSocket, reinterpret_cast<const char *>(&height), sizeof(height), 0) == SOCKET_ERROR)
         {
             wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSENDTHREAD_COMPLETE);
-            e->SetString(wxT("Error: Failed to send height of screen image\n"));
+            if (WSAGetLastError() == WSAECONNRESET) e->SetString(wxT("Disconnect successfully\n"));
+            else e->SetString(wxT("Error: Failed to send height of screen image\n"));
             wxQueueEvent(evtHandler, e);
             closesocket(clientSocket);
             return nullptr;
@@ -95,7 +97,8 @@ wxThread::ExitCode ScreenSendThread::Entry()
         if (send(clientSocket, (char *)imageData, imageSize, 0) == SOCKET_ERROR)
         {
             wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSENDTHREAD_COMPLETE);
-            e->SetString(wxT("Error: Failed to send image\n"));
+            if (WSAGetLastError() == WSAECONNRESET) e->SetString(wxT("Disconnect successfully\n"));
+            else e->SetString(wxT("Error: Failed to send image\n"));
             wxQueueEvent(evtHandler, e);
             closesocket(clientSocket);
             return nullptr;

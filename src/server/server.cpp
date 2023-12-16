@@ -68,18 +68,10 @@ bool MyServerApp::OnInit()
 MyServerFrame::MyServerFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
                             : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
+    
     wxIPV4address addr;
     addr.Hostname(wxGetHostName());
     wxString ipAddr = addr.IPAddress();
-
-    allowDiscoverThread = new AllowDiscoverThread(this, this);
-    if (allowDiscoverThread->Run() != wxTHREAD_NO_ERROR)
-    {
-        logBox->AppendText(wxT("Error: Failed to run allowing discover thread\n"));
-        delete allowDiscoverThread;
-        allowDiscoverThread = nullptr;
-        return;
-    }
     
     wxPanel *panel = new wxPanel(this);
     panel->SetBackgroundColour(wxColor(100, 100, 100));
@@ -102,17 +94,26 @@ MyServerFrame::MyServerFrame(const wxString &title, const wxPoint &pos, const wx
     sizer->Add(logBox, 1, wxEXPAND | wxALL, 5);
     panel->SetSizer(sizer);
 
-    capturingTimer = new wxTimer(this, wxID_ANY);
-    Bind(wxEVT_TIMER, &MyServerFrame::OnCapturingTimer, this);
-
-    Bind(wxEVT_CLOSE_WINDOW, MyServerFrame::OnClose, this);
+    logBox->AppendText(wxT("Welcome to Server App\nClick Begin session button to allow other computers to connect to your computer\n"));
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {
         logBox->AppendText(wxT("Error: Failed to initialize Winsock\n"));
     }
 
-    logBox->AppendText(wxT("Welcome to Server App\nClick Begin session button to allow other computers to connect to your computer\n"));
+    allowDiscoverThread = new AllowDiscoverThread(this, this);
+    if (allowDiscoverThread->Run() != wxTHREAD_NO_ERROR)
+    {
+        logBox->AppendText(wxT("Error: Failed to run allowing discover thread\n"));
+        delete allowDiscoverThread;
+        allowDiscoverThread = nullptr;
+        return;
+    }
+
+    capturingTimer = new wxTimer(this, wxID_ANY);
+    Bind(wxEVT_TIMER, &MyServerFrame::OnCapturingTimer, this);
+
+    Bind(wxEVT_CLOSE_WINDOW, MyServerFrame::OnClose, this);
 
     Bind(wxEVT_ALLOWDISCOVERTHREAD_COMPLETE, &MyServerFrame::OnAllowDiscoverComplete, this);
     Bind(wxEVT_SCREENSENDTHREAD_UPDATE, &MyServerFrame::OnScreenSendUpdate, this);
@@ -126,6 +127,8 @@ void MyServerFrame::OnPowerSessionButton(wxCommandEvent &e)
     wxString label = sessionButton->GetLabel();
     if (label.IsSameAs("Begin session"))
     {
+        logBox->AppendText(wxT("Waiting for connection...\n"));
+        
         capturingTimer->Start();
 
         screenSendThread = new ScreenSendThread(this, this, image, ics);
@@ -233,6 +236,8 @@ void MyServerFrame::OnScreenSendUpdate(wxThreadEvent &e)
 {
     isScreenConnect = true;
 
+    logBox->AppendText(wxT("Connect successfully\n"));
+
     if (isEventConnect)
     {
         sessionButton->Enable();
@@ -282,6 +287,8 @@ void MyServerFrame::OnEventRecvComplete(wxThreadEvent &e)
 
 void MyServerFrame::OnEventRecvUpdate(wxThreadEvent &e)
 {
+    logBox->AppendText(wxT("Connect successfully\n"));
+    
     isEventConnect = true;
 
     if (isScreenConnect) 

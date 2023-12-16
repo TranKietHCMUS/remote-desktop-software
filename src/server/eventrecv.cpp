@@ -68,7 +68,8 @@ wxThread::ExitCode EventRecvThread::Entry()
             if (received <= 0)
             {
                 wxThreadEvent *e = new wxThreadEvent(wxEVT_EVENTRECVTHREAD_COMPLETE);
-                e->SetString(wxT("Error: Failed to receive event\n"));
+                if (received < 0) e->SetString(wxT("Error: Failed to receive event\n"));
+                else e->SetString(wxT("Disconnect successfully\n"));
                 wxQueueEvent(evtHandler, e);
                 closesocket(clientSocket);
                 return nullptr;

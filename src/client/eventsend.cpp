@@ -70,7 +70,8 @@ wxThread::ExitCode EventSendThread::Entry()
         if (send(clientSocket, (char *)msgData, MSG_SIZE, 0) == SOCKET_ERROR)
         {
             wxThreadEvent *e = new wxThreadEvent(wxEVT_EVENTSENDTHREAD_COMPLETE);
-            e->SetString(wxT("Error: Failed to send event\n"));
+            if (WSAGetLastError() == WSAECONNRESET) e->SetString(wxT("Disconnect successfully\n"));
+            else e->SetString(wxT("Error: Failed to send event\n"));
             e->SetInt(id);
             wxQueueEvent(evtHandler, e);
             closesocket(clientSocket);

@@ -35,7 +35,7 @@ wxThread::ExitCode DiscoverServerThread::Entry()
     if (setsockopt(broadcastSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeOut, sizeof(timeOut)) < 0)
     {
         wxThreadEvent *e = new wxThreadEvent(wxEVT_DISCOVERSERVERTHREAD_COMPLETE);
-        e->SetString(wxT("Error: Failed to set time out for socket\n"));;
+        e->SetString(wxT("Error: Failed to set time out option for socket\n"));;
         wxQueueEvent(evtHandler, e);
         closesocket(broadcastSocket);
         return nullptr;
@@ -83,7 +83,8 @@ wxThread::ExitCode DiscoverServerThread::Entry()
         else
         {
             wxThreadEvent *e = new wxThreadEvent(wxEVT_DISCOVERSERVERTHREAD_COMPLETE);
-            e->SetString(wxT("Error: Failed to receive packet\n"));
+            if (WSAGetLastError() == WSAETIMEDOUT) e->SetString(wxT("Finish discovering servers\n"));
+            else e->SetString(wxT("Error: Failed to receive packet\n"));
             wxQueueEvent(evtHandler, e);
             closesocket(broadcastSocket);
             return nullptr;

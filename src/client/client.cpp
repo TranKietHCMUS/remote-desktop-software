@@ -295,6 +295,8 @@ void MyClientFrame::OnAddButton(wxCommandEvent &e)
 
 void MyClientFrame::OnDiscoverButton(wxCommandEvent &e)
 {
+    logBox->AppendText(wxT("Start discovering servers...\n"));
+    
     discoverServerThread = new DiscoverServerThread(this, this);
     if (discoverServerThread->Run() != wxTHREAD_NO_ERROR)
     {
