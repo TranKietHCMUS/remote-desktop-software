@@ -6,6 +6,9 @@
 #include <winsock2.h>
 #include <queue>
 
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
+
 class EventRecvCallback
 {
 public:

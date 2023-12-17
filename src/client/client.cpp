@@ -313,7 +313,7 @@ void MyClientFrame::OnShowScreenButton(wxCommandEvent &e)
 {
     if(!IsMaximized())
     {
-        SetSize(1650, 850);
+        SetSize(1610, 799);
         Centre();
     }
 
@@ -543,7 +543,7 @@ void MyClientFrame::OnScreenRecvUpdate(wxThreadEvent &e)
 
         if(!IsMaximized())
         {
-            SetSize(1650, 850);
+            SetSize(1610, 799);
             Centre();
         }
 
@@ -559,6 +559,9 @@ void MyClientFrame::OnScreenRecvUpdate(wxThreadEvent &e)
         return;
     }
         
+    wxSize size = displayWindow->GetClientSize();
+    std::cout << size.GetWidth() << " " << size.GetHeight() << "\n";
+
     wxCriticalSectionLocker lock(bcs);
     displayWindow->SetBitmap(bitmap);
 }
@@ -642,7 +645,7 @@ void MyClientFrame::OnEventSendUpdate(wxThreadEvent &e)
 
     if(!IsMaximized())
     {
-        SetSize(1650, 850);
+        SetSize(1610, 799);
         Centre();
     }
 

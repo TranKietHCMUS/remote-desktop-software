@@ -13,7 +13,7 @@ wxThread::ExitCode EventSimThread::Entry()
         {
             return nullptr;
         }
-        
+
         msg msg;
         {
             wxCriticalSectionLocker lock(mQcs);

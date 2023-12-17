@@ -60,41 +60,14 @@ wxThread::ExitCode ScreenSendThread::Entry()
             return nullptr;
         }
         
-        size_t width;
-        size_t height;
-        size_t imageSize;
-        unsigned char* imageData;
+        unsigned char* imageData = new unsigned char[SCREEN_SIZE];
         {
             wxCriticalSectionLocker lock(ics);
-            width = image.GetWidth();
-            height = image.GetHeight();
-            imageSize = width * height * 3;
             unsigned char* data = image.GetData();
-            imageData = new unsigned char[imageSize];
-            memmove(imageData, data, imageSize);
+            memmove(imageData, data, SCREEN_SIZE);
         }
 
-        if (send(clientSocket, reinterpret_cast<const char *>(&width), sizeof(width), 0) == SOCKET_ERROR)
-        {
-            wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSENDTHREAD_COMPLETE);
-            if (WSAGetLastError() == WSAECONNRESET) e->SetString(wxT("Disconnect successfully\n"));
-            else e->SetString(wxT("Error: Failed to send width of screen image\n"));
-            wxQueueEvent(evtHandler, e);
-            closesocket(clientSocket);
-            return nullptr;
-        }
-
-        if (send(clientSocket, reinterpret_cast<const char *>(&height), sizeof(height), 0) == SOCKET_ERROR)
-        {
-            wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSENDTHREAD_COMPLETE);
-            if (WSAGetLastError() == WSAECONNRESET) e->SetString(wxT("Disconnect successfully\n"));
-            else e->SetString(wxT("Error: Failed to send height of screen image\n"));
-            wxQueueEvent(evtHandler, e);
-            closesocket(clientSocket);
-            return nullptr;
-        }
-
-        if (send(clientSocket, (char *)imageData, imageSize, 0) == SOCKET_ERROR)
+        if (send(clientSocket, (char *)imageData, SCREEN_SIZE, 0) == SOCKET_ERROR)
         {
             wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENSENDTHREAD_COMPLETE);
             if (WSAGetLastError() == WSAECONNRESET) e->SetString(wxT("Disconnect successfully\n"));

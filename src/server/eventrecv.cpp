@@ -79,6 +79,18 @@ wxThread::ExitCode EventRecvThread::Entry()
 
         msg msg;
         memcpy(&msg, data, MSG_SIZE);
+
+        if (msg.type != -1)
+        {
+            wxScreenDC screenDC;
+
+            int screenWidth = screenDC.GetSize().GetWidth();
+            int screenHeight = screenDC.GetSize().GetHeight();
+
+            msg.x = (double)msg.x / SCREEN_WIDTH * screenWidth;
+            msg.y = (double)msg.y / SCREEN_HEIGHT * screenHeight;
+        }
+        
         {
             wxCriticalSectionLocker lock(mQcs);
             if (msg.type != -1) msgQueue.push(msg);

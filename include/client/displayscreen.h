@@ -7,7 +7,10 @@
 #include <wx/dcbuffer.h>
 #include <queue>
 
-class DisplayWindow : public wxScrolled<wxWindow>
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
+
+class DisplayWindow : public wxWindow
 {
     public:
     DisplayWindow(wxWindow *parent, std::queue<msg> &msgQueue, wxCriticalSection &mQcs);
@@ -17,8 +20,6 @@ class DisplayWindow : public wxScrolled<wxWindow>
     
     private:
     wxBitmap bitmap;
-    int drawPointX;
-    int drawPointY;
     std::queue<msg> &msgQueue;
     wxCriticalSection &mQcs;
 

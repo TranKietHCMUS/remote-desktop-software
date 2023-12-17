@@ -52,40 +52,13 @@ wxThread::ExitCode ScreenRecvThread::Entry()
             closesocket(clientSocket);
             return nullptr;
         }
-        
-        size_t width;
-        int receivedWidth = recv(clientSocket, reinterpret_cast<char *>(&width), sizeof(width), 0);
-        if (receivedWidth <= 0)
-        {
-            wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENRECVTHREAD_COMPLETE);
-            if (receivedWidth < 0) e->SetString(wxT("Error: Failed to receive width of screen image\n"));
-            else e->SetString(wxT("Disconnect successfully\n"));
-            e->SetInt(id);
-            wxQueueEvent(evtHandler, e);
-            closesocket(clientSocket);
-            return nullptr;
-        }
 
-        size_t height;
-        int receivedHeight = recv(clientSocket, reinterpret_cast<char *>(&height), sizeof(height), 0);
-        if (receivedHeight <= 0)
-        {
-            wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENRECVTHREAD_COMPLETE);
-            if (receivedWidth < 0) e->SetString(wxT("Error: Failed to receive height of screen image\n"));
-            else e->SetString(wxT("Disconnect successfully\n"));
-            e->SetInt(id);
-            wxQueueEvent(evtHandler, e);
-            closesocket(clientSocket);
-            return nullptr;
-        }
-
-        size_t imageSize = width * height * 3;
         size_t totalReceived = 0;
-        unsigned char* imageData = new unsigned char[imageSize];
+        unsigned char* imageData = new unsigned char[SCREEN_SIZE];
 
-        while (totalReceived < imageSize)
+        while (totalReceived < SCREEN_SIZE)
         {   
-            int received = recv(clientSocket, (char *)imageData + totalReceived, imageSize - totalReceived, 0);
+            int received = recv(clientSocket, (char *)imageData + totalReceived, SCREEN_SIZE - totalReceived, 0);
             if (received <= 0)
             {
                 wxThreadEvent *e = new wxThreadEvent(wxEVT_SCREENRECVTHREAD_COMPLETE);
@@ -99,7 +72,7 @@ wxThread::ExitCode ScreenRecvThread::Entry()
             totalReceived += received;
         }
 
-        wxImage image(width, height, true);
+        wxImage image(SCREEN_WIDTH, SCREEN_HEIGHT, true);
         image.SetData(imageData);
         wxBitmap tmpBitmap(image);
         {

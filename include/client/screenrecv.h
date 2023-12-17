@@ -4,6 +4,10 @@
 #include <wx/wx.h>
 #include <winsock2.h>
 
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
+#define SCREEN_SIZE 2764800
+
 class ScreenRecvCallback
 {
     public:

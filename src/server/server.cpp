@@ -205,6 +205,7 @@ void MyServerFrame::OnCapturingTimer(wxTimerEvent &e)
 
     wxCriticalSectionLocker lock(ics);
     image = bitmap.ConvertToImage();
+    image.Rescale(SCREEN_WIDTH, SCREEN_HEIGHT, wxIMAGE_QUALITY_HIGH);
 }
 
 void MyServerFrame::OnClose(wxCloseEvent &e)
