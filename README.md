@@ -1,2 +1,2 @@
-# remote-access-and-remote-control-computer-software
+# remote-desktop-software
 Computer Networking Final Project
